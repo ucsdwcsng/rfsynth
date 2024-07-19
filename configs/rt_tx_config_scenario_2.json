@@ -1,0 +1,48 @@
+{
+    "radios": [
+        {
+            "model": "USRP_N320",
+            "name": "R2",
+            "addrs": [
+                "addr=192.168.101.16"
+            ],
+            "sampleRate": 100000000,
+            "masterClockRate": 200000000,
+            "subdevSpec": "A:0",
+            "channels": [
+                {
+                    "name": "CH0",
+                    "antenna": "TX/RX",
+                    "gain": 0.8,
+                    "IQSTREAM_Params": {
+                        "frequency": 3500000000,
+                        "file": "/tmp/tetris_engine_polaroid_modality_demo_1_bBiaaUMmSQmgIfLw0e0EfEaFHkOGNVdM.32cf",
+                        "metadata": "/tmp/polaroid_auto_energy_meta.csv"
+                    }
+                }
+            ]
+        },
+        {
+            "model": "USRP_X300",
+            "name": "R1",
+            "addrs": [
+                "addr=192.168.101.19"
+            ],
+            "sampleRate": 100000000,
+            "masterClockRate": 200000000,
+            "subdevSpec": "A:0",
+            "channels": [
+                {
+                    "name": "CH0",
+                    "antenna": "TX/RX",
+                    "gain": 0.5,
+                    "IQSTREAM_Params": {
+                        "frequency": 2583404400,
+                        "file": "/tmp/tetris_engine_polaroid_two_txs_1_i8GTCtoNZnpK2wI1uxhN4kVQ4ahlzmKk.32cf",
+                        "metadata": "/tmp/polaroid_auto_energy_meta.csv"
+                    }
+                }
+            ]
+        }
+    ]
+}

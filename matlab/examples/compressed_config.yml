@@ -1,7 +1,7 @@
 generationParameters:
   flagOutputIqSamples: true
   tot_time: 10
-  outputFolder: /tmp/testVirtualEngine
+  outputFolder: /tmp
   filePrefix: test
 
 rxConfig:

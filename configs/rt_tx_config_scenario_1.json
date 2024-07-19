@@ -1,0 +1,26 @@
+{
+    "radios": [
+        {
+            "model": "USRP_X410",
+            "name": "R2",
+            "addrs": [
+                "addr=192.168.2.19"
+            ],
+            "sampleRate": 100000000,
+            "masterClockRate": 200000000,
+            "subdevSpec": "A:0",
+            "channels": [
+                {
+                    "name": "CH0",
+                    "antenna": "TX/RX",
+                    "gain": 0.8,
+                    "IQSTREAM_Params": {
+                        "frequency": 3500000000,
+                        "file": "/tmp/tetris_engine_polaroid_tmp_signal_config_1_7liaPolz9ZK7DQYL5bLrdKrt5tyXWolJ.32cf",
+                        "metadata": "/tmp/polaroid_auto_energy_meta.csv"
+                    }
+                }
+            ]
+        }
+    ]
+}

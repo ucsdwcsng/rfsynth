@@ -1,0 +1,70 @@
+{
+    "radios": [
+        {
+            "model": "USRP_X300",
+            "name": "R1",
+            "addrs": [
+                "addr=192.168.2.19"
+            ],
+            "sampleRate": 100000000,
+            "masterClockRate": 200000000,
+            "subdevSpec": "A:0",
+            "channels": [
+                {
+                    "name": "CH0",
+                    "antenna": "TX/RX",
+                    "gain": 0.5,
+                    "IQSTREAM_Params": {
+                        "frequency": 2583404400,
+                        "file": "/tmp/tetris_engine_polaroid_tmp_signal_config_1_j64U1cmElOdzkuVK9XRcWW3F7Y5hDYFv.32cf",
+                        "metadata": "/tmp/polaroid_auto_energy_meta.csv"
+                    }
+                }
+            ]
+        },
+        {
+            "model": "USRP_X300",
+            "name": "R2",
+            "addrs": [
+                "addr=192.168.100.2"
+            ],
+            "sampleRate": 100000000,
+            "masterClockRate": 200000000,
+            "subdevSpec": "A:0",
+            "channels": [
+                {
+                    "name": "CH0",
+                    "antenna": "TX/RX",
+                    "gain": 0.8,
+                    "IQSTREAM_Params": {
+                        "frequency": 3500000000,
+                        "file": "/tmp/tetris_engine_polaroid_tmp_signal_config_1_j64U1cmElOdzkuVK9XRcWW3F7Y5hDYFv.32cf",
+                        "metadata": "/tmp/polaroid_auto_energy_meta.csv"
+                    }
+                }
+            ]
+        },
+        {
+            "model": "USRP_X300",
+            "name": "R3",
+            "addrs": [
+                "addr=192.168.11.2"
+            ],
+            "sampleRate": 100000000,
+            "masterClockRate": 200000000,
+            "subdevSpec": "A:0",
+            "channels": [
+                {
+                    "name": "CH0",
+                    "antenna": "TX/RX",
+                    "gain": 0.5,
+                    "IQSTREAM_Params": {
+                        "frequency": 2583404400,
+                        "file": "/tmp/tetris_engine_polaroid_tmp_signal_config_1_j64U1cmElOdzkuVK9XRcWW3F7Y5hDYFv.32cf",
+                        "metadata": "/tmp/polaroid_auto_energy_meta.csv"
+                    }
+                }
+            ]
+        }
+    ]
+}
