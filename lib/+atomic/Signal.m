@@ -49,6 +49,16 @@ classdef Signal < handle & matlab.mixin.Copyable & matlab.mixin.Heterogeneous
             
             % Parse the optional parameters using the helper function
             [opts, ~] = parseOptions(defaults, varargin{:});
+
+            % Check if trafficType is a struct
+            if isstruct(opts.trafficType)
+                % retrieve "type" field from struct
+                trafficType = opts.trafficType.type;
+                newstruct = rmfield(opts.trafficType, 'type');
+                % convert struct to cell
+                input_args = [{trafficType}, namedargs2cell(newstruct)];
+                opts.trafficType = atomic.Traffic(input_args{:});
+            end
             
             
             class_name = class(this);

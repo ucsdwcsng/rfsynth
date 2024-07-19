@@ -128,14 +128,14 @@ classdef VirtualSignalEngine < handle
 
             % write IQ samples data file
             if ~isempty(samplesIQ) && ~all(isnan(samplesIQ(:)))
-                dataFile = fullfile(folder, filenameBase + '.32cf');
+                dataFile = fullfile(folder, string(filenameBase) + '.32cf');
                 % warning("VirtualSignalEngine Write IQ is normalizing the samples")
                 warning("VirtualSignalEngine Write IQ is not normalizing the samples")
                 % samplesIQ = samplesIQ / maxM(abs(samplesIQ));
                 write_complex_binary(samplesIQ, dataFile);
             end
             % write to json string
-            metadataFile = fullfile(folder, filenameBase + '.json');
+            metadataFile = fullfile(folder, string(filenameBase) + '.json');
             fid = fopen(metadataFile, 'w');
             fprintf(fid, metadataJsonStr);
             fprintf(fid,"\n");
@@ -143,7 +143,7 @@ classdef VirtualSignalEngine < handle
 
             % write to report for scoring
             scoringJsonStr = VirtualSignalEngine.parseMetadataForScoring(metadataJsonStr);
-            scoringFile = fullfile(folder, filenameBase + '_scoring.json');
+            scoringFile = fullfile(folder, string(filenameBase) + '_scoring.json');
             fid = fopen(scoringFile, 'w');
             fprintf(fid, scoringJsonStr);
             fprintf(fid,"\n");
