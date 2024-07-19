@@ -1,5 +1,5 @@
 function auto_siggen(filename)
-    % Read JSON file
+    % Read TAML file
     config = yaml.loadFile(filename,"ConvertToArray", true);
 
     % Generation parameters

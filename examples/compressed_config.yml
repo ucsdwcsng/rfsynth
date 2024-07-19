@@ -1,0 +1,66 @@
+generationParameters:
+  flagOutputIqSamples: true
+  tot_time: 10
+  outputFolder: /tmp/testVirtualEngine
+  filePrefix: test
+
+rxConfig:
+  name: rx1
+  rxSampleRate_Hz: 1.2288e8
+  centerFreq_Hz: 2.45e9
+  location: [0, 0, 0]
+
+txConfig:
+  - name: tx1
+    sampleRate_Hz: 1.2288e8
+    location: [0, 0, 0]
+    centerFreqRange_Hz: [100e6, 6e9]
+  - name: tx2
+    sampleRate_Hz: 1.2288e8
+    location: [0, 1, 0]
+    centerFreqRange_Hz: [100e6, 6e9]
+  - name: tx3
+    sampleRate_Hz: 1.2288e8
+    location: [0, 1, 0]
+    centerFreqRange_Hz: [100e6, 6e9]
+  - name: tx4
+    sampleRate_Hz: 1.2288e8
+    location: [0, 1, 0]
+    centerFreqRange_Hz: [100e6, 6e9]
+
+signals:
+  - type: WlanNonHT80211g
+    args:
+      trafficType:
+        type: periodic
+        transmissionPerSec: 100
+      centerFreq_Hz: 2.412e9
+      txPower_db: -74
+  - type: WlanNonHT80211g
+    args:
+      trafficType:
+        type: customArray
+        arrivalArray:
+          - 0.002
+          - 0.004
+          - 0.008
+          - 0.016
+      centerFreq_Hz: 2.437e9
+      txPower_db: -67
+  - type: Bluetooth
+    args:
+      trafficType:
+        type: periodic
+        transmissionPerSec: 100
+      centerFreq_Hz: 2.402e9
+      txPower_db: -79
+  - type: Ds3
+    args:
+      trafficType:
+        type: periodic
+        transmissionPerSec: 100
+      centerFreq_Hz: 2.46e9
+      bandwidth_Hz: 35e6
+      txPower_db: -80
+      chipsPerSymbol: 64
+      transmissionTotTime: 0.001
