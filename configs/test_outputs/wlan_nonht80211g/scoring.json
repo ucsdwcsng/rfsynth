@@ -1,0 +1,83 @@
+{
+  "reports": [
+    {
+      "report_type": "energy",
+      "instance_name": "atomic.WlanNonHT80211g_78c84be2 T_1",
+      "time_start": 0,
+      "time_stop": 0.000112,
+      "freq_lo": 2403.6,
+      "freq_hi": 2420.4,
+      "timeLength_s": 0.000112,
+      "bandwidth_Hz": 16.8
+    },
+    {
+      "report_type": "energy",
+      "instance_name": "atomic.WlanNonHT80211g_78c84be2 T_2",
+      "time_start": 0.01,
+      "time_stop": 0.010112,
+      "freq_lo": 2403.6,
+      "freq_hi": 2420.4,
+      "timeLength_s": 0.00011199999999999925,
+      "bandwidth_Hz": 16.8
+    },
+    {
+      "report_type": "signal",
+      "instance_name": "atomic.WlanNonHT80211g_78c84be2",
+      "protocol": "unknown",
+      "modality": "unknown",
+      "modulation": "unknown",
+      "activity_type": "overt_baseline",
+      "time_start": 0,
+      "time_stop": 0.010112,
+      "freq_lo": 2403.6,
+      "freq_hi": 2420.4,
+      "rx_center_freq": {
+        "rx1": 2.45E+9
+      },
+      "rx_sample_rate": {
+        "rx1": 1.2288E+8
+      },
+      "rx_input_snr": {
+        "rx1": -5
+      },
+      "reference_time": 0.005056,
+      "reference_freq": 2412,
+      "timeLength_s": 0.010112,
+      "bandwidth_Hz": 16.8,
+      "energy_set": [
+        "atomic.WlanNonHT80211g_78c84be2 T_1",
+        "atomic.WlanNonHT80211g_78c84be2 T_2"
+      ]
+    },
+    {
+      "report_type": "source",
+      "device_origin": "synthetic_atomic",
+      "instance_name": "Source1",
+      "tx": [],
+      "locationXYZ_m": [
+        0,
+        0,
+        0
+      ],
+      "outputSamplingRate_Hz": 1.2288E+8,
+      "channelModel": "IDENTITY",
+      "nSignal": 1,
+      "signal_set": [
+        "atomic.WlanNonHT80211g_78c84be2"
+      ]
+    },
+    {
+      "report_type": "receiver",
+      "instance_name": "rx1",
+      "sampleRate_Hz": 122.88,
+      "freqCenter_Hz": 2450,
+      "location": [
+        0,
+        0,
+        0
+      ],
+      "noiseProfile": [],
+      "isOn": false
+    }
+  ]
+}

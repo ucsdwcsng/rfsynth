@@ -1,0 +1,34 @@
+{
+  "reports": [
+    {
+      "report_type": "source",
+      "device_origin": "synthetic_atomic",
+      "instance_name": "NoiseSource1",
+      "tx": [],
+      "locationXYZ_m": [
+        0,
+        0,
+        0
+      ],
+      "outputSamplingRate_Hz": 1.2288E+8,
+      "channelModel": "IDENTITY",
+      "nSignal": 1,
+      "signal_set": [
+        []
+      ]
+    },
+    {
+      "report_type": "receiver",
+      "instance_name": "rx1",
+      "sampleRate_Hz": 122.88,
+      "freqCenter_Hz": 2450,
+      "location": [
+        0,
+        0,
+        0
+      ],
+      "noiseProfile": [],
+      "isOn": false
+    }
+  ]
+}

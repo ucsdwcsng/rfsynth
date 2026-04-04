@@ -1,0 +1,137 @@
+{
+  "sourceArray": {
+    "report_type": "source",
+    "device_origin": "synthetic_atomic",
+    "instance_name": "Source1",
+    "signalArray": {
+      "chipsPerSymbol": 64,
+      "modOrder": 2,
+      "nDataSymb": 273,
+      "spreadType": 1,
+      "samplesPerChip": 2,
+      "pulseShapeFlag": 0,
+      "requiredMetadata": {
+        "report_type": "signal",
+        "instance_name": "atomic.Ds3_78c84be2",
+        "protocol": "unknown",
+        "modality": "direct_sequence",
+        "modulation": "bpsk",
+        "activity_type": "overt_baseline",
+        "time_start": 0,
+        "time_stop": 0.0109984,
+        "freq_lo": 2.4425E+9,
+        "freq_hi": 2.4775E+9,
+        "rx_center_freq": {
+          "rx1": 2.45E+9
+        },
+        "rx_sample_rate": {
+          "rx1": 1.2288E+8
+        },
+        "rx_input_snr": {
+          "rx1": -5
+        },
+        "reference_time": 0.0054992,
+        "reference_freq": 2.46E+9,
+        "timeLength_s": 0.0109984,
+        "bandwidth_Hz": 3.5E+7
+      },
+      "trafficType": {
+        "trafficType": "periodic",
+        "startTime": 0,
+        "stopTime": null,
+        "transmissionPerSec": 100,
+        "arrivalArray": [],
+        "varRange": [],
+        "energies_per_burst": [],
+        "time_per_energy": [],
+        "burst_select": 0,
+        "time_bet_energy": 0.001,
+        "timeOn": null
+      },
+      "txPower_db": -80,
+      "transmissionArray": [
+        {
+          "report_type": "energy",
+          "instance_name": "atomic.Ds3_78c84be2 T_1",
+          "time_start": 0,
+          "time_stop": 0.0009984,
+          "freq_lo": 2.4425E+9,
+          "freq_hi": 2.4775E+9,
+          "timeLength_s": 0.0009984,
+          "bandwidth_Hz": 3.5E+7
+        },
+        {
+          "report_type": "energy",
+          "instance_name": "atomic.Ds3_78c84be2 T_2",
+          "time_start": 0.01,
+          "time_stop": 0.0109984,
+          "freq_lo": 2.4425E+9,
+          "freq_hi": 2.4775E+9,
+          "timeLength_s": 0.0009984,
+          "bandwidth_Hz": 3.5E+7
+        }
+      ],
+      "transmissionRate_Hz": 3.5E+7,
+      "snr_db": null,
+      "centerFreq_Hz": 2.46E+9,
+      "bandwidth_Hz": 3.5E+7
+    },
+    "tx": [],
+    "locationXYZ_m": [
+      0,
+      0,
+      0
+    ],
+    "outputSamplingRate_Hz": 1.2288E+8,
+    "channelModel": "IDENTITY",
+    "imperfectionCfg": {
+      "freqOffset": 0,
+      "freqOffsetRange": [
+        0,
+        0
+      ],
+      "imbalIQ": [
+        0,
+        0
+      ],
+      "imbalIQRange": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "offsetDC": [
+        0,
+        0
+      ],
+      "offsetDCRange": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "nSignal": 1
+  },
+  "rxObj": {
+    "report_type": "receiver",
+    "instance_name": "rx1",
+    "sampleRate_Hz": 1.2288E+8,
+    "freqCenter_Hz": 2.45E+9,
+    "location": [
+      0,
+      0,
+      0
+    ],
+    "noiseProfile": [],
+    "isOn": false
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "verdict": "Inconclusive",
+  "empty_signal_boxes": [],
+  "empty_energy_boxes": [],
+  "per_energy_inband_ratios": [
+    NaN,
+    NaN
+  ],
+  "min_energy_inband_ratio": NaN,
+  "percentile_stats": {
+    "top_1.0_percent": {
+      "threshold_db": NaN,
+      "total_pixels": 0,
+      "inside_signal_boxes": 0,
+      "inside_energy_boxes": 0,
+      "outside_signal_boxes": 0,
+      "signal_coverage_ratio": NaN,
+      "energy_coverage_ratio": NaN
+    },
+    "top_0.5_percent": {
+      "threshold_db": NaN,
+      "total_pixels": 0,
+      "inside_signal_boxes": 0,
+      "inside_energy_boxes": 0,
+      "outside_signal_boxes": 0,
+      "signal_coverage_ratio": NaN,
+      "energy_coverage_ratio": NaN
+    },
+    "top_0.1_percent": {
+      "threshold_db": NaN,
+      "total_pixels": 0,
+      "inside_signal_boxes": 0,
+      "inside_energy_boxes": 0,
+      "outside_signal_boxes": 0,
+      "signal_coverage_ratio": NaN,
+      "energy_coverage_ratio": NaN
+    }
+  },
+  "base": "/tmp/atomic_dummy_signal",
+  "sample_rate_hz": 122880000.0,
+  "center_freq_hz": 2450000000.0,
+  "duration_s": 0.02,
+  "signal_box_count": 1,
+  "energy_box_count": 2
+}

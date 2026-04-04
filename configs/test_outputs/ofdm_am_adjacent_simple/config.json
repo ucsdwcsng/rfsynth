@@ -1,0 +1,31 @@
+{
+  "output": {
+    "tot_time": 0.02,
+    "outputBase": "scene_ofdm_am_adjacent_simple"
+  },
+  "rx": {
+    "sampleRate_Hz": 122880000.0,
+    "centerFreq_Hz": 2450000000.0
+  },
+  "signals": [
+    {
+      "type": "Ofdm",
+      "centerFreq_Hz": 2450000000.0,
+      "transmissionRate_Hz": 10000000.0,
+      "txPower_db": -66,
+      "Nfft": 256,
+      "modOrder": 16,
+      "transmissionTotTime": 0.004
+    },
+    {
+      "type": "Am",
+      "centerFreq_Hz": 2454132031.25,
+      "transmissionRate_Hz": 1000000.0,
+      "bandwidth_Hz": 100000.0,
+      "txPower_db": -72,
+      "modulationIndex": 0.8,
+      "messageFreq_Hz": 5000.0,
+      "transmissionTotTime": 0.004
+    }
+  ]
+}

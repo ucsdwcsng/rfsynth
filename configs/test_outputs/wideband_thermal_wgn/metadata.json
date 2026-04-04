@@ -1,0 +1,121 @@
+{
+  "sourceArray": {
+    "report_type": "source",
+    "device_origin": "synthetic_atomic",
+    "instance_name": "NoiseSource1",
+    "signalArray": {
+      "temperature_K": 290,
+      "wgnPowerDbm": -93.080375167353736,
+      "requiredMetadata": {
+        "report_type": "signal",
+        "instance_name": "atomic.WidebandThermalWgn_78c84be2",
+        "protocol": "unknown",
+        "modality": "unknown",
+        "modulation": "unknown",
+        "activity_type": "overt_baseline",
+        "time_start": 0,
+        "time_stop": 0.02,
+        "freq_lo": 2.38856E+9,
+        "freq_hi": 2.51144E+9,
+        "rx_center_freq": {
+          "rx1": 2.45E+9
+        },
+        "rx_sample_rate": {
+          "rx1": 1.2288E+8
+        },
+        "rx_input_snr": {
+          "rx1": -5
+        },
+        "reference_time": 0.01,
+        "reference_freq": 2.45E+9,
+        "timeLength_s": 0.02,
+        "bandwidth_Hz": 1.2288E+8
+      },
+      "trafficType": {
+        "trafficType": "constant",
+        "startTime": 0,
+        "stopTime": null,
+        "transmissionPerSec": [],
+        "arrivalArray": [],
+        "varRange": [],
+        "energies_per_burst": [],
+        "time_per_energy": [],
+        "burst_select": 0,
+        "time_bet_energy": 0.001,
+        "timeOn": null
+      },
+      "txPower_db": -93.080375167353736,
+      "transmissionArray": {
+        "report_type": "energy",
+        "instance_name": "atomic.WidebandThermalWgn_78c84be2 T_1",
+        "time_start": 0,
+        "time_stop": 0.02,
+        "freq_lo": 2.38856E+9,
+        "freq_hi": 2.51144E+9,
+        "timeLength_s": 0.02,
+        "bandwidth_Hz": 1.2288E+8
+      },
+      "transmissionRate_Hz": 1.2288E+8,
+      "snr_db": null,
+      "centerFreq_Hz": 2.45E+9,
+      "bandwidth_Hz": 1.2288E+8
+    },
+    "tx": [],
+    "locationXYZ_m": [
+      0,
+      0,
+      0
+    ],
+    "outputSamplingRate_Hz": 1.2288E+8,
+    "channelModel": "IDENTITY",
+    "imperfectionCfg": {
+      "freqOffset": 0,
+      "freqOffsetRange": [
+        0,
+        0
+      ],
+      "imbalIQ": [
+        0,
+        0
+      ],
+      "imbalIQRange": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "offsetDC": [
+        0,
+        0
+      ],
+      "offsetDCRange": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "nSignal": 1
+  },
+  "rxObj": {
+    "report_type": "receiver",
+    "instance_name": "rx1",
+    "sampleRate_Hz": 1.2288E+8,
+    "freqCenter_Hz": 2.45E+9,
+    "location": [
+      0,
+      0,
+      0
+    ],
+    "noiseProfile": [],
+    "isOn": false
+  }
+}

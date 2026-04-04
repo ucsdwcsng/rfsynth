@@ -1,0 +1,137 @@
+{
+  "sourceArray": {
+    "report_type": "source",
+    "device_origin": "synthetic_example",
+    "instance_name": "QamEdgeSource",
+    "signalArray": {
+      "samplesPerSymbol": 8,
+      "modOrder": 16,
+      "symbolRate": 1.0E+6,
+      "nDataSymb": 4000,
+      "beta": 0.35,
+      "span": 10,
+      "requiredMetadata": {
+        "report_type": "signal",
+        "instance_name": "atomic.Qam_78c84be2",
+        "protocol": "unknown",
+        "modality": "single_carrier",
+        "modulation": "qam16",
+        "activity_type": "overt_baseline",
+        "time_start": 0,
+        "time_stop": 0.014,
+        "freq_lo": 2.50995E+9,
+        "freq_hi": 2.5113E+9,
+        "rx_center_freq": {
+          "rx1": 2.45E+9
+        },
+        "rx_sample_rate": {
+          "rx1": 1.2288E+8
+        },
+        "rx_input_snr": {
+          "rx1": -5
+        },
+        "reference_time": 0.007,
+        "reference_freq": 2.510625E+9,
+        "timeLength_s": 0.014,
+        "bandwidth_Hz": 1.35E+6
+      },
+      "trafficType": {
+        "trafficType": "periodic",
+        "startTime": 0,
+        "stopTime": null,
+        "transmissionPerSec": 100,
+        "arrivalArray": [],
+        "varRange": [],
+        "energies_per_burst": [],
+        "time_per_energy": [],
+        "burst_select": 0,
+        "time_bet_energy": 0.001,
+        "timeOn": null
+      },
+      "txPower_db": -70,
+      "transmissionArray": [
+        {
+          "report_type": "energy",
+          "instance_name": "atomic.Qam_78c84be2 T_1",
+          "time_start": 0,
+          "time_stop": 0.004,
+          "freq_lo": 2.50995E+9,
+          "freq_hi": 2.5113E+9,
+          "timeLength_s": 0.004,
+          "bandwidth_Hz": 1.35E+6
+        },
+        {
+          "report_type": "energy",
+          "instance_name": "atomic.Qam_78c84be2 T_2",
+          "time_start": 0.01,
+          "time_stop": 0.014,
+          "freq_lo": 2.50995E+9,
+          "freq_hi": 2.5113E+9,
+          "timeLength_s": 0.004,
+          "bandwidth_Hz": 1.35E+6
+        }
+      ],
+      "transmissionRate_Hz": 8.0E+6,
+      "snr_db": null,
+      "centerFreq_Hz": 2.510625E+9,
+      "bandwidth_Hz": 1.35E+6
+    },
+    "tx": [],
+    "locationXYZ_m": [
+      0,
+      0,
+      0
+    ],
+    "outputSamplingRate_Hz": 1.2288E+8,
+    "channelModel": "IDENTITY",
+    "imperfectionCfg": {
+      "freqOffset": 0,
+      "freqOffsetRange": [
+        0,
+        0
+      ],
+      "imbalIQ": [
+        0,
+        0
+      ],
+      "imbalIQRange": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "offsetDC": [
+        0,
+        0
+      ],
+      "offsetDCRange": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          0
+        ]
+      ]
+    },
+    "nSignal": 1
+  },
+  "rxObj": {
+    "report_type": "receiver",
+    "instance_name": "rx1",
+    "sampleRate_Hz": 1.2288E+8,
+    "freqCenter_Hz": 2.45E+9,
+    "location": [
+      0,
+      0,
+      0
+    ],
+    "noiseProfile": [],
+    "isOn": false
+  }
+}

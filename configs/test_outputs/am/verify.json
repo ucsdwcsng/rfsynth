@@ -1,0 +1,45 @@
+{
+  "verdict": "Visual pass",
+  "empty_signal_boxes": [],
+  "empty_energy_boxes": [],
+  "per_energy_inband_ratios": [
+    0.9999999032437852,
+    0.9999999032437811
+  ],
+  "min_energy_inband_ratio": 0.9999999032437811,
+  "percentile_stats": {
+    "top_1.0_percent": {
+      "threshold_db": -112.30758666992188,
+      "total_pixels": 98196,
+      "inside_signal_boxes": 3856,
+      "inside_energy_boxes": 3840,
+      "outside_signal_boxes": 94340,
+      "signal_coverage_ratio": 0.03926840197156707,
+      "energy_coverage_ratio": 0.039105462544299155
+    },
+    "top_0.5_percent": {
+      "threshold_db": -95.9025650024414,
+      "total_pixels": 49091,
+      "inside_signal_boxes": 3856,
+      "inside_energy_boxes": 3840,
+      "outside_signal_boxes": 45235,
+      "signal_coverage_ratio": 0.07854800268888391,
+      "energy_coverage_ratio": 0.0782220773665234
+    },
+    "top_0.1_percent": {
+      "threshold_db": -58.145782470703125,
+      "total_pixels": 9833,
+      "inside_signal_boxes": 3848,
+      "inside_energy_boxes": 3840,
+      "outside_signal_boxes": 5985,
+      "signal_coverage_ratio": 0.391335299501678,
+      "energy_coverage_ratio": 0.3905217126004271
+    }
+  },
+  "base": "/tmp/atomic_am",
+  "sample_rate_hz": 122880000.0,
+  "center_freq_hz": 2450000000.0,
+  "duration_s": 0.02,
+  "signal_box_count": 1,
+  "energy_box_count": 2
+}

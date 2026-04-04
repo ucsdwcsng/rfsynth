@@ -1,0 +1,47 @@
+{
+  "verdict": "Visual pass",
+  "empty_signal_boxes": [],
+  "empty_energy_boxes": [],
+  "per_energy_inband_ratios": [
+    0.85776059135772,
+    0.8577605913531664,
+    0.99999429337367,
+    0.999994293373671
+  ],
+  "min_energy_inband_ratio": 0.8577605913531664,
+  "percentile_stats": {
+    "top_1.0_percent": {
+      "threshold_db": -103.26712799072266,
+      "total_pixels": 98251,
+      "inside_signal_boxes": 35621,
+      "inside_energy_boxes": 21280,
+      "outside_signal_boxes": 62630,
+      "signal_coverage_ratio": 0.3625510172924449,
+      "energy_coverage_ratio": 0.216588126329503
+    },
+    "top_0.5_percent": {
+      "threshold_db": -83.48493957519531,
+      "total_pixels": 49318,
+      "inside_signal_boxes": 27213,
+      "inside_energy_boxes": 21280,
+      "outside_signal_boxes": 22105,
+      "signal_coverage_ratio": 0.5517863660326858,
+      "energy_coverage_ratio": 0.43148546169755464
+    },
+    "top_0.1_percent": {
+      "threshold_db": -27.226173400878906,
+      "total_pixels": 9820,
+      "inside_signal_boxes": 9820,
+      "inside_energy_boxes": 9820,
+      "outside_signal_boxes": 0,
+      "signal_coverage_ratio": 1.0,
+      "energy_coverage_ratio": 1.0
+    }
+  },
+  "base": "/tmp/scene_wlan_tone_adjacent",
+  "sample_rate_hz": 122880000.0,
+  "center_freq_hz": 2450000000.0,
+  "duration_s": 0.02,
+  "signal_box_count": 2,
+  "energy_box_count": 4
+}

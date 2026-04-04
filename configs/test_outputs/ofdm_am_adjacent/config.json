@@ -1,0 +1,93 @@
+{
+  "generationParameters": {
+    "flagOutputIqSamples": true,
+    "tot_time": 0.02,
+    "outputFolder": "/tmp",
+    "outputBase": "scene_ofdm_am_adjacent"
+  },
+  "rxConfig": {
+    "name": "rx1",
+    "rxSampleRate_Hz": 122880000.0,
+    "centerFreq_Hz": 2450000000.0,
+    "location": [
+      0,
+      0,
+      0
+    ]
+  },
+  "sources": [
+    {
+      "name": "OfdmSource",
+      "origin": "synthetic_example",
+      "location": [
+        0,
+        0,
+        0
+      ],
+      "channelModel": "IDENTITY",
+      "freqOffset_Hz": 0,
+      "iqImbalance": [
+        0,
+        0
+      ],
+      "dcOffset": [
+        0,
+        0
+      ],
+      "signals": [
+        {
+          "type": "Ofdm",
+          "args": {
+            "trafficType": {
+              "type": "periodic",
+              "transmissionPerSec": 100
+            },
+            "centerFreq_Hz": 2450000000.0,
+            "transmissionRate_Hz": 10000000.0,
+            "txPower_db": -66,
+            "Nfft": 256,
+            "modOrder": 16,
+            "transmissionTotTime": 0.004
+          }
+        }
+      ]
+    },
+    {
+      "name": "AmSource",
+      "origin": "synthetic_example",
+      "location": [
+        0,
+        0,
+        0
+      ],
+      "channelModel": "IDENTITY",
+      "freqOffset_Hz": 0,
+      "iqImbalance": [
+        0,
+        0
+      ],
+      "dcOffset": [
+        0,
+        0
+      ],
+      "signals": [
+        {
+          "type": "Am",
+          "args": {
+            "trafficType": {
+              "type": "periodic",
+              "transmissionPerSec": 100
+            },
+            "centerFreq_Hz": 2454132031.25,
+            "transmissionRate_Hz": 1000000.0,
+            "bandwidth_Hz": 100000.0,
+            "txPower_db": -72,
+            "modulationIndex": 0.8,
+            "messageFreq_Hz": 5000.0,
+            "transmissionTotTime": 0.004
+          }
+        }
+      ]
+    }
+  ]
+}

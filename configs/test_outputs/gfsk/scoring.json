@@ -1,0 +1,83 @@
+{
+  "reports": [
+    {
+      "report_type": "energy",
+      "instance_name": "atomic.Gfsk_78c84be2 T_1",
+      "time_start": 0,
+      "time_stop": 0.004,
+      "freq_lo": 2453.75,
+      "freq_hi": 2454.25,
+      "timeLength_s": 0.004,
+      "bandwidth_Hz": 0.5
+    },
+    {
+      "report_type": "energy",
+      "instance_name": "atomic.Gfsk_78c84be2 T_2",
+      "time_start": 0.01,
+      "time_stop": 0.014,
+      "freq_lo": 2453.75,
+      "freq_hi": 2454.25,
+      "timeLength_s": 0.004,
+      "bandwidth_Hz": 0.5
+    },
+    {
+      "report_type": "signal",
+      "instance_name": "atomic.Gfsk_78c84be2",
+      "protocol": "unknown",
+      "modality": "single_carrier",
+      "modulation": "gfsk",
+      "activity_type": "overt_baseline",
+      "time_start": 0,
+      "time_stop": 0.014,
+      "freq_lo": 2453.75,
+      "freq_hi": 2454.25,
+      "rx_center_freq": {
+        "rx1": 2.45E+9
+      },
+      "rx_sample_rate": {
+        "rx1": 1.2288E+8
+      },
+      "rx_input_snr": {
+        "rx1": -5
+      },
+      "reference_time": 0.007,
+      "reference_freq": 2454,
+      "timeLength_s": 0.014,
+      "bandwidth_Hz": 0.5,
+      "energy_set": [
+        "atomic.Gfsk_78c84be2 T_1",
+        "atomic.Gfsk_78c84be2 T_2"
+      ]
+    },
+    {
+      "report_type": "source",
+      "device_origin": "synthetic_atomic",
+      "instance_name": "Source1",
+      "tx": [],
+      "locationXYZ_m": [
+        0,
+        0,
+        0
+      ],
+      "outputSamplingRate_Hz": 1.2288E+8,
+      "channelModel": "IDENTITY",
+      "nSignal": 1,
+      "signal_set": [
+        "atomic.Gfsk_78c84be2"
+      ]
+    },
+    {
+      "report_type": "receiver",
+      "instance_name": "rx1",
+      "sampleRate_Hz": 122.88,
+      "freqCenter_Hz": 2450,
+      "location": [
+        0,
+        0,
+        0
+      ],
+      "noiseProfile": [],
+      "isOn": false
+    }
+  ]
+}

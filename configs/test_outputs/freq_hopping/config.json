@@ -1,0 +1,58 @@
+{
+  "generationParameters": {
+    "flagOutputIqSamples": true,
+    "tot_time": 0.02,
+    "outputFolder": "/tmp",
+    "outputBase": "atomic_freq_hopping"
+  },
+  "rxConfig": {
+    "name": "rx1",
+    "rxSampleRate_Hz": 122880000.0,
+    "centerFreq_Hz": 2450000000.0,
+    "location": [
+      0,
+      0,
+      0
+    ]
+  },
+  "sources": [
+    {
+      "name": "Source1",
+      "origin": "synthetic_atomic",
+      "location": [
+        0,
+        0,
+        0
+      ],
+      "channelModel": "IDENTITY",
+      "freqOffset_Hz": 0,
+      "iqImbalance": [
+        0,
+        0
+      ],
+      "dcOffset": [
+        0,
+        0
+      ],
+      "signals": [
+        {
+          "type": "FreqHopping",
+          "args": {
+            "trafficType": {
+              "type": "periodic",
+              "transmissionPerSec": 100
+            },
+            "centerFreq_Hz": 2450000000.0,
+            "transmissionRate_Hz": 10000000.0,
+            "bandwidth_Hz": 10000000.0,
+            "txPower_db": -70,
+            "nHops": 5,
+            "bandwidthPerHop_Hz": 500000.0,
+            "guardTime_s": 0.00005,
+            "transmissionTotTime": 0.004
+          }
+        }
+      ]
+    }
+  ]
+}

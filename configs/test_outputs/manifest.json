@@ -1,0 +1,154 @@
+{
+  "exports": [
+    {
+      "name": "am",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/am.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/am",
+      "output_base": "atomic_am"
+    },
+    {
+      "name": "bluetooth",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/bluetooth.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/bluetooth",
+      "output_base": "atomic_bluetooth"
+    },
+    {
+      "name": "cpfsk",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/cpfsk.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/cpfsk",
+      "output_base": "atomic_cpfsk"
+    },
+    {
+      "name": "ds3",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/ds3.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/ds3",
+      "output_base": "atomic_ds3"
+    },
+    {
+      "name": "dummy_signal",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/dummy_signal.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/dummy_signal",
+      "output_base": "atomic_dummy_signal"
+    },
+    {
+      "name": "fm",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/fm.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/fm",
+      "output_base": "atomic_fm"
+    },
+    {
+      "name": "freq_hopping",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/freq_hopping.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/freq_hopping",
+      "output_base": "atomic_freq_hopping"
+    },
+    {
+      "name": "fsk",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/fsk.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/fsk",
+      "output_base": "atomic_fsk"
+    },
+    {
+      "name": "gfsk",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/gfsk.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/gfsk",
+      "output_base": "atomic_gfsk"
+    },
+    {
+      "name": "gmsk",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/gmsk.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/gmsk",
+      "output_base": "atomic_gmsk"
+    },
+    {
+      "name": "msk",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/msk.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/msk",
+      "output_base": "atomic_msk"
+    },
+    {
+      "name": "ofdm",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/ofdm.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/ofdm",
+      "output_base": "atomic_ofdm"
+    },
+    {
+      "name": "pam",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/pam.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/pam",
+      "output_base": "atomic_pam"
+    },
+    {
+      "name": "psk",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/psk.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/psk",
+      "output_base": "atomic_psk"
+    },
+    {
+      "name": "qam",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/qam.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/qam",
+      "output_base": "atomic_qam"
+    },
+    {
+      "name": "random_symbol",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/random_symbol.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/random_symbol",
+      "output_base": "atomic_random_symbol"
+    },
+    {
+      "name": "sine",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/sine.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/sine",
+      "output_base": "atomic_sine"
+    },
+    {
+      "name": "ssb",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/ssb.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/ssb",
+      "output_base": "atomic_ssb"
+    },
+    {
+      "name": "wideband_thermal_wgn",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/wideband_thermal_wgn.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/wideband_thermal_wgn",
+      "output_base": "atomic_wideband_thermal_wgn"
+    },
+    {
+      "name": "wlan_nonht80211g",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_atomic/wlan_nonht80211g.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/wlan_nonht80211g",
+      "output_base": "atomic_wlan_nonht80211g"
+    },
+    {
+      "name": "ofdm_am_adjacent",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_examples/ofdm_am_adjacent.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/ofdm_am_adjacent",
+      "output_base": "scene_ofdm_am_adjacent"
+    },
+    {
+      "name": "ofdm_am_adjacent_simple",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_examples/ofdm_am_adjacent_simple.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/ofdm_am_adjacent_simple",
+      "output_base": "scene_ofdm_am_adjacent_simple"
+    },
+    {
+      "name": "ofdm_fsk_adjacent",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_examples/ofdm_fsk_adjacent.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/ofdm_fsk_adjacent",
+      "output_base": "scene_ofdm_fsk_adjacent"
+    },
+    {
+      "name": "qam_channel_edge",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_examples/qam_channel_edge.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/qam_channel_edge",
+      "output_base": "scene_qam_channel_edge"
+    },
+    {
+      "name": "wlan_tone_adjacent",
+      "config": "/Users/dineshb/repos/signal-processing/rfsynth/configs/synthetic_examples/wlan_tone_adjacent.json",
+      "dest": "/Users/dineshb/repos/signal-processing/rfsynth/configs/test_outputs/wlan_tone_adjacent",
+      "output_base": "scene_wlan_tone_adjacent"
+    }
+  ]
+}
