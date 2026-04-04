@@ -12,14 +12,172 @@ The codebase implements the architecture described in the DySPAN 2024 paper, wit
 ## Part 1: Using `rfsynth`
 
 This section is for someone who wants to generate data, inspect metadata, or replay generated signals over the air.
+For the MATLAB path, the output is synthesized IQ, not a hardware-captured receive recording. The generator creates signal content, applies source-level RF effects and channel transforms, and produces the final IQ seen at a configured Rx viewpoint.
 
 ### Choose a workflow
 
 | Goal | Entry point | Main output |
 | --- | --- | --- |
-| Generate one synthetic receiver capture | `matlab/examples/auto_siggen.m` | One composite `.32cf` plus metadata |
+| Generate one synthetic IQ scene | `matlab/examples/auto_siggen.m` | One composite `.32cf` plus metadata |
 | Generate artifacts for long-duration OTA replay | `matlab/examples/auto_compressed_siggen.m` | Per-signal `.32cf` files, metadata, schedule CSV, `.zip` bundle |
 | Replay generated signals on USRPs | `rfsynth/rfsynth_tx.py` | OTA transmission plus time-shifted metadata |
+
+### Mental model: how the main objects interact
+
+The easiest way to understand the system is to separate waveform definition from scheduling and observation:
+
+| Object | What it means | Main question it answers |
+| --- | --- | --- |
+| `Traffic` | When transmissions happen | "At what times do energies occur?" |
+| `Signal` | What one transmission looks like | "What waveform/modulation/protocol is transmitted?" |
+| `Source` | Which signals belong to one emitter, plus channel and RF effects | "Which signals come from the same device and what transforms are applied to them?" |
+| `Rx` | Output observation viewpoint | "At what center frequency and sample rate is the final IQ produced?" |
+| `Tx` | OTA replay resource used by the compressed path | "Which transmitter resources are available for replay?" |
+
+In other words:
+
+- `Traffic` decides the timing of energies.
+- `Signal` generates the baseband samples for each energy.
+- `Source` groups one or more signals and applies source-level RF impairments and channel transforms.
+- `Rx` defines the final output IQ viewpoint.
+- `Tx` is only for the compressed / OTA flow and represents replay capacity, not waveform semantics.
+
+One important convenience behavior in the YAML-driven `auto_siggen` flow:
+
+- The `signals:` list is the main user input.
+- Each listed signal is automatically wrapped in a default `Source`.
+- If you want multiple signals to explicitly share one `Source`, use the programmatic API in `matlab/examples/siggen_api.m`.
+
+### Minimal input examples
+
+There are three practical input surfaces in this repository:
+
+1. Synthetic-generation YAML.
+2. Compressed-generation YAML for OTA artifacts.
+3. Python OTA transmitter JSON for actual USRP replay.
+
+#### Example 1: minimal synthetic generation YAML
+
+This is the simplest way to generate a synthetic IQ output.
+
+```yaml
+generationParameters:
+  flagOutputIqSamples: true
+  tot_time: 0.02
+  outputFile: /tmp/testVirtualEngine
+
+rxConfig:
+  name: rx1
+  rxSampleRate_Hz: 1.2288e8
+  centerFreq_Hz: 2.45e9
+  location: [0, 0, 0]
+
+signals:
+  - type: Bluetooth
+    args:
+      trafficType:
+        type: periodic
+        transmissionPerSec: 100
+      centerFreq_Hz: 2.402e9
+      txPower_db: -79
+```
+
+How to read this:
+
+- `rxConfig` defines the output viewpoint.
+- `signals[0].type` selects the atomic waveform class.
+- `trafficType` determines when energies are placed.
+- `centerFreq_Hz` and `txPower_db` define that signal's placement and power.
+- `auto_siggen` will create one default `Source`, generate the BLE waveform, apply source/channel transforms, and write the final IQ and metadata.
+
+#### Example 2: minimal compressed-generation YAML
+
+This is the input for generating OTA replay artifacts.
+
+```yaml
+generationParameters:
+  flagOutputIqSamples: true
+  tot_time: 10
+  outputFolder: /tmp
+  filePrefix: test
+
+rxConfig:
+  name: rx1
+  rxSampleRate_Hz: 1.2288e8
+  centerFreq_Hz: 2.45e9
+  location: [0, 0, 0]
+
+txConfig:
+  - name: tx1
+    sampleRate_Hz: 1.2288e8
+    location: [0, 0, 0]
+    centerFreqRange_Hz: [100e6, 6e9]
+
+signals:
+  - type: WlanNonHT80211g
+    args:
+      trafficType:
+        type: periodic
+        transmissionPerSec: 100
+      centerFreq_Hz: 2.412e9
+      txPower_db: -74
+```
+
+How to read this:
+
+- `signals:` still defines the waveform content and timing.
+- `txConfig:` does not define the waveform. It defines the available logical transmit resources for assigning signals during compressed generation.
+- `CompressedEngine` turns this into per-signal IQ files plus schedule metadata such as `_energy_meta.csv`.
+
+#### Example 3: OTA transmitter JSON
+
+This JSON config is used by the Python replay layer to bind replay artifacts to real SDR hardware.
+
+```json
+{
+  "radios": [
+    {
+      "model": "USRP_X410",
+      "name": "R2",
+      "addrs": ["addr=192.168.2.19"],
+      "sampleRate": 100000000,
+      "masterClockRate": 200000000,
+      "subdevSpec": "A:0",
+      "channels": [
+        {
+          "name": "CH0",
+          "antenna": "TX/RX",
+          "gain": 0.8,
+          "IQSTREAM_Params": {
+            "frequency": 3500000000,
+            "file": "/tmp/example_signal.32cf",
+            "metadata": "/tmp/example_energy_meta.csv"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+How to read this:
+
+- `radios[]` enumerates physical SDRs.
+- `channels[]` configures each transmit channel on that SDR.
+- `IQSTREAM_Params.file` points at the replay IQ payload.
+- `IQSTREAM_Params.metadata` points at the energy schedule CSV used for timed replay.
+- `frequency` is the RF center frequency used during OTA transmission.
+
+### A concrete end-to-end story
+
+For one periodic BLE example:
+
+1. `Traffic(periodic, transmissionPerSec=100)` says there should be 100 energies per second.
+2. `Bluetooth` says what one energy looks like in baseband.
+3. `Source` applies IQ imbalance, DC offset, CFO, and channel effects.
+4. `Rx` defines the output center frequency and sample rate for the final IQ written by MATLAB.
+5. In the compressed flow, `Tx` resources are used to decide which replay resource carries the signal.
+6. In the Python OTA flow, the JSON radio config tells GNU Radio/UHD which physical USRP transmits that IQ file and at what frequency.
 
 ### High-level system view: synthetic generation
 
@@ -30,7 +188,7 @@ flowchart LR
     C --> D["Atomic signals<br/>WLAN / BLE / DSSS / noise"]
     C --> E["Traffic models"]
     C --> F["Source model<br/>impairments + channel"]
-    C --> G["Composite receiver-view IQ"]
+    C --> G["Composite output IQ<br/>at configured Rx viewpoint"]
     G --> H[".32cf"]
     G --> I[".json metadata"]
     G --> J["_scoring.json"]
@@ -63,7 +221,7 @@ flowchart LR
 
 #### 1. Synthetic composite IQ generation
 
-Use this when the goal is to create a single simulated receiver capture and metadata:
+Use this when the goal is to create one synthesized IQ output and metadata for a configured observation viewpoint:
 
 ```matlab
 auto_siggen('config.yml');
@@ -158,7 +316,7 @@ The MATLAB engine follows the paper's three-level abstraction: `source -> signal
 
 ```mermaid
 flowchart TD
-    RX["Rx<br/>observation point"] --> ENG["VirtualSignalEngine / CompressedEngine"]
+    RX["Rx<br/>viewpoint parameters"] --> ENG["VirtualSignalEngine / CompressedEngine"]
     ENG --> SRC["Source[*]"]
     SRC --> IMP["RFImperfections"]
     SRC --> CH["Channel model"]
@@ -217,7 +375,7 @@ flowchart LR
 | Path | Purpose |
 | --- | --- |
 | `matlab/examples/` | User-facing entrypoints such as `auto_siggen.m` and `auto_compressed_siggen.m`. |
-| `matlab/lib/VirtualSignalEngine.m` | Main full-scene simulator that superposes all sources into one IQ capture. |
+| `matlab/lib/VirtualSignalEngine.m` | Main full-scene simulator that superposes all sources into one output IQ stream. |
 | `matlab/lib/CompressedEngine.m` | Compressed generator for OTA replay artifacts and energy scheduling metadata. |
 | `matlab/lib/+atomic/` | Atomic signal classes, traffic models, source model, RF impairments, Tx/Rx objects. |
 | `matlab/lib/metadata_utils/+report/` | Metadata classes for source, signal, and transmission reporting. |
