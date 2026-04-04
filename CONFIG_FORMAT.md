@@ -92,6 +92,8 @@ Minimal shape:
       "txPower_db": -66,
       "Nfft": 256,
       "modOrder": 16,
+      "symbolTime_s": 2.56e-5,
+      "cpTime_s": 1.6e-6,
       "transmissionTotTime": 0.004
     },
     {
@@ -118,6 +120,8 @@ Defaults applied by [run_synthetic_json.m](/Users/dineshb/repos/signal-processin
 - default source channel is `IDENTITY`
 - default source impairments are zero
 - if `trafficType` is omitted, it defaults to periodic at `100` transmissions per second
+
+For `Ofdm`, `symbolTime_s` and `cpTime_s` are optional human-readable timing fields. The implementation derives them from `Nfft` and `transmissionRate_Hz`, and if you provide them they are checked for consistency.
 
 ### JSON Verbose Form
 

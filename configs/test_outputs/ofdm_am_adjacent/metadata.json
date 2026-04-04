@@ -1290,7 +1290,10 @@
           "TX_SPATIAL_STREAM_SHIFT": 3,
           "num_strm_rx": 1,
           "num_packets": 1,
-          "packet_step_size": 1
+          "packet_step_size": 1,
+          "SYMBOL_TIME_S": 2.56E-5,
+          "CP_TIME_S": 1.6E-6,
+          "TOTAL_SYMBOL_TIME_S": 2.7199999999999997E-5
         },
         "requiredMetadata": {
           "report_type": "signal",

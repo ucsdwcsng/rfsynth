@@ -29,13 +29,24 @@ classdef Ofdm < atomic.Signal
                 'txPower_db', 0, ...
                 'Nfft', 256, ...
                 'modOrder', 4, ...
+                'symbolTime_s', nan, ...
+                'cpTime_s', nan, ...
                 'transmissionTotTime', 0.004);
 
             [opts, ~] = parseOptions(defaults, varargin{:});
             ofdm_params = wcsng_ofdm_param_gen('N_SC', opts.Nfft);
+            symbolTime_s = opts.Nfft / opts.transmissionRate_Hz;
+            cpTime_s = ofdm_params.CP_LEN / opts.transmissionRate_Hz;
+
+            validateOptionalTime(opts.symbolTime_s, symbolTime_s, 'symbolTime_s');
+            validateOptionalTime(opts.cpTime_s, cpTime_s, 'cpTime_s');
+
             ofdm_params.N_OFDM_SYMS = max(1, floor((opts.transmissionTotTime * opts.transmissionRate_Hz) / (opts.Nfft + ofdm_params.CP_LEN)));
             ofdm_params.N_STS = 0;
             ofdm_params.MOD_ORDER = opts.modOrder;
+            ofdm_params.SYMBOL_TIME_S = symbolTime_s;
+            ofdm_params.CP_TIME_S = cpTime_s;
+            ofdm_params.TOTAL_SYMBOL_TIME_S = symbolTime_s + cpTime_s;
             bandwidth_Hz = (numel(ofdm_params.FILLED_SC_IND) + 1) / opts.Nfft * opts.transmissionRate_Hz;
 
             this@atomic.Signal( ...
@@ -61,5 +72,18 @@ classdef Ofdm < atomic.Signal
             this.ofdm_params.MOD_ORDER = supportedOrders(randi(numel(supportedOrders)));
             this.ofdm_params.N_OFDM_SYMS = randi([10 200]);
         end
+    end
+end
+
+function validateOptionalTime(actual, expected, fieldName)
+    if ~isfinite(actual)
+        return
+    end
+
+    tol = max(1e-12, abs(expected) * 1e-6);
+    if abs(actual - expected) > tol
+        error('atomic:Ofdm:InvalidTiming', ...
+            '%s=%g does not match the derived OFDM timing %g.', ...
+            fieldName, actual, expected);
     end
 end
