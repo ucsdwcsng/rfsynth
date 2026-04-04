@@ -9,49 +9,148 @@ The codebase implements the architecture described in the DySPAN 2024 paper, wit
 
 <https://github.com/user-attachments/assets/295cc706-e7db-4178-b2d8-e8b314a08c92>
 
-## Architecture
+## Part 1: Using `rfsynth`
 
-### High-level system view
+This section is for someone who wants to generate data, inspect metadata, or replay generated signals over the air.
+
+### Choose a workflow
+
+| Goal | Entry point | Main output |
+| --- | --- | --- |
+| Generate one synthetic receiver capture | `matlab/examples/auto_siggen.m` | One composite `.32cf` plus metadata |
+| Generate artifacts for long-duration OTA replay | `matlab/examples/auto_compressed_siggen.m` | Per-signal `.32cf` files, metadata, schedule CSV, `.zip` bundle |
+| Replay generated signals on USRPs | `rfsynth/rfsynth_tx.py` | OTA transmission plus time-shifted metadata |
+
+### High-level system view: synthetic generation
 
 ```mermaid
 flowchart LR
-    A["User configuration<br/>YAML / JSON"] --> B["MATLAB generation layer"]
-    B --> C["Generated artifacts"]
-    C --> D["Python OTA interface"]
-    D --> E["GNU Radio / UHD flowgraphs"]
-    E --> F["USRP radios"]
-    C --> G["Metadata consumers<br/>scoring / forensics / reporting"]
-    D --> G
-
-    subgraph B["MATLAB generation layer"]
-        B1["VirtualSignalEngine<br/>full-scene IQ synthesis"]
-        B2["CompressedEngine<br/>per-signal compressed generation"]
-        B3["Atomic library<br/>WLAN / BLE / DSSS / noise"]
-        B4["Traffic models<br/>periodic / poisson / customArray"]
-        B5["Metadata model<br/>source / signal / energy"]
-        B1 --> B3
-        B1 --> B4
-        B1 --> B5
-        B2 --> B3
-        B2 --> B4
-        B2 --> B5
-    end
-
-    subgraph C["Generated artifacts"]
-        C1[".32cf IQ files"]
-        C2[".json metadata"]
-        C3["_scoring.json"]
-        C4["_energy_meta.csv"]
-        C5["compressed .zip bundle"]
-    end
-
-    subgraph D["Python OTA interface"]
-        D1["rfsynth_tx.py"]
-        D2["utils.py"]
-        D3["realTimeTestbed.py"]
-        D4["report_utils.py"]
-    end
+    A["YAML config<br/>config.yml"] --> B["MATLAB generator"]
+    B --> C["VirtualSignalEngine"]
+    C --> D["Atomic signals<br/>WLAN / BLE / DSSS / noise"]
+    C --> E["Traffic models"]
+    C --> F["Source model<br/>impairments + channel"]
+    C --> G["Composite receiver-view IQ"]
+    G --> H[".32cf"]
+    G --> I[".json metadata"]
+    G --> J["_scoring.json"]
+    I --> K["Metadata consumers<br/>scoring / forensics / analysis"]
+    J --> K
 ```
+
+### High-level system view: OTA transmission
+
+```mermaid
+flowchart LR
+    A["YAML config<br/>compressed_config.yml"] --> B["MATLAB compressed generator"]
+    B --> C["CompressedEngine"]
+    C --> D["Per-signal IQ payloads"]
+    C --> E["Metadata JSON"]
+    C --> F["energy_meta.csv"]
+    D --> G[".zip bundle"]
+    E --> G
+    F --> G
+
+    G --> H["Python OTA interface<br/>rfsynth_tx.py"]
+    H --> I["Archive unpacking + metadata offsetting"]
+    I --> J["realTimeTestbed.py"]
+    J --> K["GNU Radio / UHD transmit flowgraphs"]
+    K --> L["USRP radios"]
+    I --> M["Ground-truth / reporting consumers"]
+```
+
+### Quick start
+
+#### 1. Synthetic composite IQ generation
+
+Use this when the goal is to create a single simulated receiver capture and metadata:
+
+```matlab
+auto_siggen('config.yml');
+```
+
+This path creates:
+
+- One composite `.32cf` file.
+- One complete `.json` metadata file.
+- One `_scoring.json` report.
+
+For more MATLAB usage details, see [`matlab/README.md`](./matlab/README.md).
+
+#### 2. Compressed artifact generation for OTA replay
+
+Use this when the goal is to replay generated signals over SDRs for longer-duration experiments:
+
+```matlab
+auto_compressed_siggen('compressed_config.yml');
+```
+
+This path creates a compressed archive containing:
+
+- Per-signal `.32cf` payload files.
+- Metadata JSON.
+- A scoring JSON report.
+- An energy schedule CSV used by the Python OTA interface.
+
+#### 3. OTA replay with USRPs
+
+After generating the compressed bundle, invoke the Python replay path with a transmitter configuration JSON:
+
+```bash
+python rfsynth/rfsynth_tx.py --data /full/path/to/compressed_data.zip --txconfig ./configs/rt_tx_config_scenario_3.json
+```
+
+The example configuration files in `configs/` assume Ettus USRP radios and map one or more logical transmitters to UHD device addresses and channel parameters.
+
+### User-facing artifact model
+
+The repository uses a small set of recurring artifacts across both workflows:
+
+- `.32cf`: complex float IQ samples.
+- `.json`: full metadata for sources, signals, and energies.
+- `_scoring.json`: reduced metadata for scoring or downstream evaluation.
+- `_energy_meta.csv`: OTA replay schedule including energy timing, center frequency bounds, and IQ file assignment.
+- `.zip`: archive used to move compressed generation outputs into the Python OTA layer.
+
+### User-facing metadata model
+
+The metadata hierarchy mirrors the signal hierarchy:
+
+- `source`: transmitter entity, device origin, location, output sample rate, channel model.
+- `signal`: protocol/modulation/modality/activity plus overall time-frequency bounds.
+- `energy`: individual transmission instances with precise `time_start`, `time_stop`, `freq_lo`, and `freq_hi`.
+
+This structure is implemented under `matlab/lib/metadata_utils/+report/`.
+
+### Requirements
+
+#### MATLAB generation
+
+- MATLAB R2021b or later.
+- Communications Toolbox.
+- Bluetooth Toolbox.
+- WLAN Toolbox.
+- YAML support is vendored in `matlab/lib/utils/MartinKoch123-yaml-1.5.5.0/`.
+
+Some channel and scheduling paths also rely on MATLAB functionality referenced in the codebase such as `winner2.*`, `comm.*`, and `fixed.Interval`.
+
+#### Python / OTA replay
+
+- Python 3.10 or later.
+- PyYAML.
+- pyzmq.
+- numpy.
+- pandas.
+- scipy.
+- matplotlib.
+- absl-py.
+- GNU Radio.
+- UHD.
+- Ettus USRP SDRs.
+
+## Part 2: Extending `rfsynth`
+
+This section is for someone who wants to add new waveforms, metadata fields, traffic models, or OTA control logic.
 
 ### Core abstraction model
 
@@ -70,9 +169,9 @@ flowchart TD
     EN --> ENMETA["report.Transmission metadata"]
 ```
 
-### Full synthetic generation path
+### Extension architecture: synthetic generation internals
 
-This path produces a single composite IQ capture at the receiver viewpoint.
+This is the path to understand if you want to add new signal classes or modify how synthetic scenes are assembled.
 
 ```mermaid
 flowchart LR
@@ -88,9 +187,9 @@ flowchart LR
     J --> K["Write .32cf + .json + _scoring.json"]
 ```
 
-### Compressed / OTA generation path
+### Extension architecture: OTA replay internals
 
-This path is used when long-duration OTA replay is needed. Instead of creating one large composite scene, the generator emits one IQ file per signal plus schedule metadata describing when and where each energy should be transmitted.
+This is the path to understand if you want to modify transmitter scheduling, artifact packaging, metadata propagation, or GNU Radio/UHD integration.
 
 ```mermaid
 flowchart LR
@@ -113,7 +212,7 @@ flowchart LR
     Q --> R["USRP over-the-air replay"]
 ```
 
-## Repository Layout
+### Repository layout
 
 | Path | Purpose |
 | --- | --- |
@@ -129,9 +228,9 @@ flowchart LR
 | `rfsynth/otatestbed/receiver*.py` | GNU Radio/UHD receive-side flowgraph wrappers for OTA capture workflows. |
 | `configs/` | Example USRP radio configuration files for OTA replay. |
 
-## Main Components
+### Main extension points
 
-### MATLAB generation layer
+#### MATLAB generation layer
 
 - `VirtualSignalEngine` is the base engine for full-scene synthetic generation.
 - `CompressedEngine` is the OTA-oriented engine that emits per-signal IQ plus scheduling artifacts.
@@ -144,7 +243,15 @@ flowchart LR
 - `atomic.Traffic` determines when energies occur.
 - `report.*` classes define metadata serialized into JSON and scoring artifacts.
 
-### Python OTA layer
+Typical extension tasks:
+
+- Add a new waveform by creating a new class under `matlab/lib/+atomic/` that subclasses `atomic.Signal`.
+- Add new scheduling behavior by extending `atomic.Traffic`.
+- Add metadata fields by modifying the `report.*` classes and the JSON conversion paths.
+- Change full-scene synthesis behavior in `VirtualSignalEngine` and `atomic.Source`.
+- Change compressed artifact packaging in `CompressedEngine`.
+
+#### Python OTA layer
 
 - `rfsynth_tx.py` orchestrates compressed bundle replay.
 - `utils.py` unpacks bundles, offsets metadata to wall-clock time, and launches replay workers.
@@ -153,96 +260,14 @@ flowchart LR
 - `report_utils.py` rewrites metadata into OTA-aligned ground truth.
 - `preamble.py`, `receiver.py`, and `otaTestbed.py` support receive-side OTA collection and slicing workflows.
 
-## Execution Modes
+Typical extension tasks:
 
-### 1. Synthetic composite IQ generation
+- Change bundle unpacking or metadata adjustment logic in `utils.py`.
+- Change per-radio orchestration in `realTimeTestbed.py`.
+- Modify timed replay behavior in `Transmitter` and `transmitter_flowgraph.py`.
+- Extend receive-side collection and slicing through `receiver.py`, `preamble.py`, and `otaTestbed.py`.
 
-Use this when the goal is to create a single simulated receiver capture and metadata:
-
-```matlab
-auto_siggen('config.yml');
-```
-
-This path creates:
-
-- One composite `.32cf` file.
-- One complete `.json` metadata file.
-- One `_scoring.json` report.
-
-For more MATLAB usage details, see [`matlab/README.md`](./matlab/README.md).
-
-### 2. Compressed artifact generation for OTA replay
-
-Use this when the goal is to replay generated signals over SDRs for longer-duration experiments:
-
-```matlab
-auto_compressed_siggen('compressed_config.yml');
-```
-
-This path creates a compressed archive containing:
-
-- Per-signal `.32cf` payload files.
-- Metadata JSON.
-- A scoring JSON report.
-- An energy schedule CSV used by the Python OTA interface.
-
-### 3. OTA replay with USRPs
-
-After generating the compressed bundle, invoke the Python replay path with a transmitter configuration JSON:
-
-```bash
-python rfsynth/rfsynth_tx.py --data /full/path/to/compressed_data.zip --txconfig ./configs/rt_tx_config_scenario_3.json
-```
-
-The example configuration files in `configs/` assume Ettus USRP radios and map one or more logical transmitters to UHD device addresses and channel parameters.
-
-## Artifact Model
-
-The repository uses a small set of recurring artifacts across both workflows:
-
-- `.32cf`: complex float IQ samples.
-- `.json`: full metadata for sources, signals, and energies.
-- `_scoring.json`: reduced metadata for scoring or downstream evaluation.
-- `_energy_meta.csv`: OTA replay schedule including energy timing, center frequency bounds, and IQ file assignment.
-- `.zip`: archive used to move compressed generation outputs into the Python OTA layer.
-
-## Metadata Model
-
-The metadata hierarchy mirrors the signal hierarchy:
-
-- `source`: transmitter entity, device origin, location, output sample rate, channel model.
-- `signal`: protocol/modulation/modality/activity plus overall time-frequency bounds.
-- `energy`: individual transmission instances with precise `time_start`, `time_stop`, `freq_lo`, and `freq_hi`.
-
-This structure is implemented under `matlab/lib/metadata_utils/+report/`.
-
-## Requirements
-
-### MATLAB generation
-
-- MATLAB R2021b or later.
-- Communications Toolbox.
-- Bluetooth Toolbox.
-- WLAN Toolbox.
-- YAML support is vendored in `matlab/lib/utils/MartinKoch123-yaml-1.5.5.0/`.
-
-Some channel and scheduling paths also rely on MATLAB functionality referenced in the codebase such as `winner2.*`, `comm.*`, and `fixed.Interval`.
-
-### Python / OTA replay
-
-- Python 3.10 or later.
-- PyYAML.
-- pyzmq.
-- numpy.
-- pandas.
-- scipy.
-- matplotlib.
-- absl-py.
-- GNU Radio.
-- UHD.
-- Ettus USRP SDRs.
-
-## Notes on Design Intent
+### Design intent
 
 At a design level, the repository separates concerns cleanly:
 
