@@ -1,0 +1,59 @@
+{
+  "generationParameters": {
+    "flagOutputIqSamples": true,
+    "tot_time": 0.02,
+    "outputFolder": "/tmp",
+    "outputBase": "atomic_nr5g78"
+  },
+  "rxConfig": {
+    "name": "rx1",
+    "rxSampleRate_Hz": 122880000.0,
+    "centerFreq_Hz": 3300000000.0,
+    "location": [
+      0,
+      0,
+      0
+    ]
+  },
+  "sources": [
+    {
+      "name": "Source1",
+      "origin": "synthetic_atomic",
+      "location": [
+        0,
+        0,
+        0
+      ],
+      "channelModel": "IDENTITY",
+      "freqOffset_Hz": 0,
+      "iqImbalance": [
+        0,
+        0
+      ],
+      "dcOffset": [
+        0,
+        0
+      ],
+      "signals": [
+        {
+          "type": "nr5g",
+          "args": {
+            "trafficType": {
+              "type": "periodic",
+              "transmissionPerSec": 1
+            },
+            "centerFreq_Hz": 3300000000.0,
+            "txPower_db": -68,
+            "gridSize": 50,
+            "subCarrierSpacing_kHz": 15,
+            "numSubframes": 1,
+            "cyclicPrefix": "Normal",
+            "modulation": "QPSK",
+            "bandwidth_Hz": 10000000.0,
+            "transmissionRate_Hz": 40000000.0
+          }
+        }
+      ]
+    }
+  ]
+}

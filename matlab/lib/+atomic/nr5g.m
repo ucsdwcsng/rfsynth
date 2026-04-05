@@ -7,6 +7,7 @@ classdef nr5g < atomic.Signal
         numSubframes (1,1) double = 1
         cyclicPrefix string = "Normal"
         modulation string = "QPSK"
+        waveformProfile string = "control"
         channelBandwidth_MHz (1,1) double = 10
     end
 
@@ -21,6 +22,7 @@ classdef nr5g < atomic.Signal
                 'numSubframes', 1, ...
                 'cyclicPrefix', "Normal", ...
                 'modulation', "QPSK", ...
+                'waveformProfile', "control", ...
                 'bandwidth_Hz', 10e6, ...
                 'transmissionRate_Hz', 40e6);
 
@@ -40,6 +42,7 @@ classdef nr5g < atomic.Signal
             this.numSubframes = opts.numSubframes;
             this.cyclicPrefix = string(opts.cyclicPrefix);
             this.modulation = string(opts.modulation);
+            this.waveformProfile = string(opts.waveformProfile);
             this.channelBandwidth_MHz = opts.bandwidth_Hz / 1e6;
         end
 
@@ -51,7 +54,8 @@ classdef nr5g < atomic.Signal
                 this.channelBandwidth_MHz, ...
                 this.numSubframes, ...
                 char(this.cyclicPrefix), ...
-                char(this.modulation));
+                char(this.modulation), ...
+                char(this.waveformProfile));
         end
     end
 end

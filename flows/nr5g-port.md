@@ -14,8 +14,13 @@ Recommended first supported subset:
 - `CP = Normal`
 - one `TotSubframes`
 - one `modulation`
+- one `waveformProfile`
 
 The point is to close one narrow NR waveform first, not all bands and numerologies.
+
+Current working pattern in this repo:
+- direct Python reconstruction for simple narrow control-style presets
+- oracle-backed grid templates for exact narrow presets
 
 ## Flow
 
@@ -29,6 +34,7 @@ Tasks:
 - register it
 - add `configs/synthetic_atomic/nr5g.json`
 - add one basic render test
+- if exact parity is needed quickly, export one narrow MATLAB template instead of approximating the full PHY
 
 Good first target:
 - one FR1-style preset
@@ -54,6 +60,11 @@ For NR, expect exact parity to require more explicit control over:
 - grid mapping
 - reference signals
 - symbol scheduling
+- waveform profile selection
+
+Preferred exact-parity shortcut:
+- export one narrow template with `matlab/lib/utils/exportNr5gTemplate.m`
+- load that template in Python as one oracle-backed profile
 
 ### 3. Parity debug
 
@@ -67,9 +78,16 @@ Likely mismatch classes for NR:
 - reference-signal placement
 - symbol timing and burst boundaries
 - normalization
+- waveform profile mismatch such as `control` vs `pdsch`
 
 Acceptance:
 - one preset reaches acceptable parity
+
+Current proved sequence:
+1. narrow control-style preset
+2. second center-frequency variant
+3. FR1 oracle-backed preset
+4. `PDSCH 16QAM` oracle-backed preset
 
 ### 4. Regression
 
@@ -90,3 +108,28 @@ Call the first NR milestone complete when all of these are true:
 - one public config exists
 - MATLAB compare artifacts exist
 - regression suite remains green
+
+## Current Extension Knobs
+
+When you modify this flow for the next NR step, pick only one of:
+
+- new `waveformProfile`
+- new `modulation`
+- new `gridSize`
+- new center-frequency preset
+- new numerology
+
+Do not widen more than one of those in the same first pass.
+
+## How To Modify This Flow
+
+Edit this flow when NR support widens.
+
+Common next edits:
+- change the first target preset
+- add a new `waveformProfile`
+- tighten the compare mode from `scene-behavioral` to `near-exact` or `atomic-exact`
+- add a second milestone after the first preset is green, for example:
+  - `FR1`
+  - `PDSCH 16QAM`
+  - a second numerology

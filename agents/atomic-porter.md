@@ -76,3 +76,12 @@ Return:
 - test added
 - whether the atomic is ready for `agents/oracle-compare.md`
 - which acceptance metrics were met
+
+## How To Modify This Agent
+
+Edit this file when the definition of "ported" changes.
+
+Most useful knobs:
+- add or tighten `Acceptance metrics`
+- require a different compare mode in `Handoff readiness`
+- add protocol-specific constraints to `Working rules`

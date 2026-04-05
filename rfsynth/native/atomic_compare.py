@@ -105,6 +105,22 @@ def generate_test_vector(config: str | Path | dict[str, Any], out_path: str | Pa
             "message_bits": np.asarray(message, dtype=np.int64).tolist(),
             "scrambler_initialization": [int(signal_spec.args.get("scramblerInitialization", 93))],
         }
+    elif signal_type == "LTE_DL_FDD":
+        message = signal_spec.args.get("message")
+        if message is None:
+            message_path = signal_spec.args.get("messagePath")
+            if message_path:
+                raw = json.loads(Path(message_path).read_text())
+                if "message_bits" in raw:
+                    message = raw["message_bits"]
+                else:
+                    message = raw.get("payload", {}).get("message_bits")
+        if message is None:
+            # Narrow one-shot LTE preset currently uses a fixed 672-bit payload.
+            message = rng.integers(0, 2, size=672).tolist()
+        payload = {
+            "message_bits": np.asarray(message, dtype=np.int64).tolist(),
+        }
     elif signal_type == "Ds3":
         symbol_rate = float(signal_spec.args["bandwidth_Hz"]) / (2.0 * float(signal_spec.args.get("chipsPerSymbol", 1024)))
         n_sym = max(1, int(round(float(signal_spec.args.get("transmissionTotTime", 0.001)) * symbol_rate)))

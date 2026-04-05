@@ -8,6 +8,7 @@ from pathlib import Path
 import numpy as np
 
 from rfsynth import Scene, Signal, Source, Traffic, VirtualSignalEngine, compile_replay, load_scene, plot_artifacts, render_synthetic, run_replay, verify_artifacts
+from rfsynth.native.atomic.nr5g_template import symbol_phase_sequence
 from rfsynth.native.waveforms import compute_transmission_windows
 
 
@@ -39,7 +40,20 @@ class NativePipelineTest(unittest.TestCase):
         subset = [
             "am.json",
             "bluetooth.json",
+            "lte_dl_fdd.json",
+            "lte_dl_fdd_2600.json",
+            "lte_dl_fdd_100rb.json",
+            "lte_dl_fdd_75rb.json",
+            "lte_dl_fdd_50rb.json",
+            "lte_dl_fdd_25rb.json",
+            "lte_dl_fdd_16qam.json",
+            "lte_dl_fdd_extcp.json",
+            "lte_dl_fdd_5sf.json",
+            "lte_dl_fdd_15rb.json",
             "nr5g.json",
+            "nr5g78.json",
+            "nr5g_fr1.json",
+            "nr5g_pdsch_16qam.json",
             "ofdm.json",
             "wlan_nonht80211g.json",
         ]
@@ -160,6 +174,129 @@ class NativePipelineTest(unittest.TestCase):
             self.assertEqual(burst.sample_rate_hz, expected_rate)
             self.assertEqual(burst.extras["mode"], args.get("mode", "LE1M"))
 
+    def test_lte_dl_fdd_oracle_backed_preset_render(self) -> None:
+        scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd.json")
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 1920)
+        self.assertEqual(burst.sample_rate_hz, 1.92e6)
+        self.assertEqual(burst.bandwidth_hz, 1.4e6)
+        self.assertEqual(burst.protocol, "cellular")
+        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763")
+        self.assertEqual(burst.extras["NDLRB"], 6)
+        self.assertEqual(burst.extras["TotSubframes"], 1)
+
+    def test_lte_dl_fdd_2600_oracle_backed_preset_render(self) -> None:
+        scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd_2600.json")
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 1920)
+        self.assertEqual(burst.sample_rate_hz, 1.92e6)
+        self.assertEqual(burst.bandwidth_hz, 1.4e6)
+        self.assertEqual(burst.protocol, "cellular")
+        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_2600")
+        self.assertEqual(burst.extras["NDLRB"], 6)
+        self.assertEqual(burst.extras["TotSubframes"], 1)
+        self.assertEqual(burst.extras["centerFreq_Hz"], 2.655e9)
+
+    def test_lte_dl_fdd_ndlrb50_oracle_backed_preset_render(self) -> None:
+        scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd_50rb.json")
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 15360)
+        self.assertEqual(burst.sample_rate_hz, 15.36e6)
+        self.assertEqual(burst.bandwidth_hz, 10.0e6)
+        self.assertEqual(burst.protocol, "cellular")
+        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_NDLRB50")
+        self.assertEqual(burst.extras["NDLRB"], 50)
+        self.assertEqual(burst.extras["TotSubframes"], 1)
+
+    def test_lte_dl_fdd_ndlrb75_oracle_backed_preset_render(self) -> None:
+        scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd_75rb.json")
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 30720)
+        self.assertEqual(burst.sample_rate_hz, 23.04e6)
+        self.assertEqual(burst.bandwidth_hz, 15.0e6)
+        self.assertEqual(burst.protocol, "cellular")
+        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_NDLRB75")
+        self.assertEqual(burst.extras["NDLRB"], 75)
+        self.assertEqual(burst.extras["TotSubframes"], 1)
+
+    def test_lte_dl_fdd_ndlrb100_oracle_backed_preset_render(self) -> None:
+        scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd_100rb.json")
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 30720)
+        self.assertEqual(burst.sample_rate_hz, 30.72e6)
+        self.assertEqual(burst.bandwidth_hz, 20.0e6)
+        self.assertEqual(burst.protocol, "cellular")
+        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_NDLRB100")
+        self.assertEqual(burst.extras["NDLRB"], 100)
+        self.assertEqual(burst.extras["TotSubframes"], 1)
+
+    def test_lte_dl_fdd_ndlrb25_oracle_backed_preset_render(self) -> None:
+        scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd_25rb.json")
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 7680)
+        self.assertEqual(burst.sample_rate_hz, 7.68e6)
+        self.assertEqual(burst.bandwidth_hz, 5.0e6)
+        self.assertEqual(burst.protocol, "cellular")
+        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_NDLRB25")
+        self.assertEqual(burst.extras["NDLRB"], 25)
+        self.assertEqual(burst.extras["TotSubframes"], 1)
+
+    def test_lte_dl_fdd_16qam_oracle_backed_preset_render(self) -> None:
+        scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd_16qam.json")
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 1920)
+        self.assertEqual(burst.sample_rate_hz, 1.92e6)
+        self.assertEqual(burst.bandwidth_hz, 1.4e6)
+        self.assertEqual(burst.protocol, "cellular")
+        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_16QAM")
+        self.assertEqual(burst.extras["NDLRB"], 6)
+        self.assertEqual(burst.extras["TotSubframes"], 1)
+        self.assertEqual(burst.extras["modulation"], "16QAM")
+
+    def test_lte_dl_fdd_extcp_oracle_backed_preset_render(self) -> None:
+        scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd_extcp.json")
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 1920)
+        self.assertEqual(burst.sample_rate_hz, 1.92e6)
+        self.assertEqual(burst.bandwidth_hz, 1.4e6)
+        self.assertEqual(burst.protocol, "cellular")
+        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_EXTCP")
+        self.assertEqual(burst.extras["NDLRB"], 6)
+        self.assertEqual(burst.extras["TotSubframes"], 1)
+        self.assertEqual(burst.extras["CP"], "Extended")
+
+    def test_lte_dl_fdd_5sf_oracle_backed_preset_render(self) -> None:
+        scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd_5sf.json")
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 9600)
+        self.assertEqual(burst.sample_rate_hz, 1.92e6)
+        self.assertEqual(burst.bandwidth_hz, 1.4e6)
+        self.assertEqual(burst.protocol, "cellular")
+        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_5SF")
+        self.assertEqual(burst.extras["NDLRB"], 6)
+        self.assertEqual(burst.extras["TotSubframes"], 5)
+
+    def test_lte_dl_fdd_ndlrb15_oracle_backed_preset_render(self) -> None:
+        scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd_15rb.json")
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 3840)
+        self.assertEqual(burst.sample_rate_hz, 3.84e6)
+        self.assertEqual(burst.bandwidth_hz, 3.0e6)
+        self.assertEqual(burst.protocol, "cellular")
+        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_NDLRB15")
+        self.assertEqual(burst.extras["NDLRB"], 15)
+        self.assertEqual(burst.extras["TotSubframes"], 1)
+
     def test_nr5g_narrow_preset_render(self) -> None:
         scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "nr5g.json")
         signal = scene.sources[0].signals[0]
@@ -172,6 +309,65 @@ class NativePipelineTest(unittest.TestCase):
         self.assertEqual(burst.extras["family"], "nr5g")
         self.assertEqual(burst.extras["subCarrierSpacing_kHz"], 15.0)
         self.assertEqual(burst.extras["numSubframes"], 1)
+
+    def test_nr5g78_render_and_phase_formula(self) -> None:
+        scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "nr5g78.json")
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 40000)
+        self.assertEqual(burst.sample_rate_hz, 40e6)
+        self.assertEqual(burst.extras["centerFreq_Hz"], 3.3e9)
+        expected = np.array(
+            [
+                -107992.24746714914,
+                -1587486.0377670925,
+                -3066979.828067036,
+                -4546473.618366978,
+                -6025967.408666922,
+                -7505461.1989668645,
+                -8984954.98926681,
+                -10475248.004313467,
+                -11954741.794613408,
+                -13434235.58491335,
+                -14913729.375213297,
+                -16393223.16551324,
+                -17872716.95581318,
+                -19352210.746113125,
+            ],
+            dtype=np.float64,
+        )
+        np.testing.assert_allclose(symbol_phase_sequence(3.3e9), expected, atol=1e-6, rtol=0.0)
+
+    def test_nr5g_fr1_oracle_backed_preset_render(self) -> None:
+        scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "nr5g_fr1.json")
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 40000)
+        self.assertEqual(burst.sample_rate_hz, 40e6)
+        self.assertEqual(burst.bandwidth_hz, 5e6)
+        self.assertEqual(burst.extras["gridSize"], 15)
+        self.assertEqual(burst.extras["centerFreq_Hz"], 2.655e9)
+
+    def test_nr5g_pdsch_16qam_oracle_backed_preset_render(self) -> None:
+        scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "nr5g_pdsch_16qam.json")
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 40000)
+        self.assertEqual(burst.sample_rate_hz, 40e6)
+        self.assertEqual(burst.bandwidth_hz, 10e6)
+        self.assertEqual(burst.extras["gridSize"], 50)
+        self.assertEqual(burst.extras["modulation"], "16QAM")
+        self.assertEqual(burst.extras["waveformProfile"], "pdsch")
+
+    def test_nr5g_multisubframe_zero_pad_matches_helper_behavior(self) -> None:
+        cfg = json.loads((REPO_ROOT / "configs" / "synthetic_atomic" / "nr5g.json").read_text())
+        cfg["sources"][0]["signals"][0]["args"]["numSubframes"] = 5
+        scene = load_scene(cfg)
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 200000)
+        self.assertGreater(np.max(np.abs(burst.samples[:40000])), 0.0)
+        self.assertEqual(np.max(np.abs(burst.samples[40000:])), 0.0)
 
 
 if __name__ == "__main__":

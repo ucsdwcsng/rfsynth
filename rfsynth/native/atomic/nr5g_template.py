@@ -19,26 +19,6 @@ QPSK_MAGNITUDE = 0.8025738444819686
 
 CP_LENGTHS = np.asarray([250, 225, 225, 225, 225, 225, 225, 250, 225, 225, 225, 225, 225, 225], dtype=np.int64)
 SYMBOL_LENGTHS = np.asarray([3450, 3425, 3425, 3425, 3425, 3425, 3425, 3450, 3425, 3425, 3425, 3425, 3425, 3425], dtype=np.int64)
-SYMBOL_PHASES = np.asarray(
-    [
-        -124354.70920459597,
-        -1828014.225307561,
-        -3531673.741410526,
-        -5235333.2575134905,
-        -6938992.773616456,
-        -8642652.289719421,
-        -10346311.805822387,
-        -12062406.79284581,
-        -13766066.308948776,
-        -15469725.82505174,
-        -17173385.341154706,
-        -18877044.85725767,
-        -20580704.373360638,
-        -22284363.8894636,
-    ],
-    dtype=np.float64,
-)
-
 CHANNEL_REAL_SIGNS = np.asarray(
     [
         1, -1, -1, -1, 1, 1, 1, 1, 1, -1, -1, -1, -1, 1, 1, 1, -1, -1, -1, 1, 1, -1, -1, -1, -1, -1, -1, -1,
@@ -149,3 +129,8 @@ def channel_symbols() -> np.ndarray:
 
 def dmrs_symbols() -> np.ndarray:
     return (QPSK_MAGNITUDE * (DMRS_REAL_SIGNS + 1j * DMRS_IMAG_SIGNS)).astype(np.complex128)
+
+
+def symbol_phase_sequence(center_freq_hz: float) -> np.ndarray:
+    offsets = np.cumsum(SYMBOL_LENGTHS, dtype=np.float64) - float(NFFT)
+    return (-2.0 * np.pi * float(center_freq_hz) * offsets / float(SYMBOL_SAMPLE_RATE_HZ)).astype(np.float64)

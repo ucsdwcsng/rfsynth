@@ -12,6 +12,7 @@ from .freq_hopping import FreqHoppingSignal
 from .fsk import FskSignal
 from .gfsk import GfskSignal
 from .gmsk import GmskSignal
+from .lte_dl_fdd import LteDlFddSignal
 from .msk import MskSignal
 from .nr5g import Nr5gSignal
 from .ofdm import OfdmSignal
@@ -35,6 +36,7 @@ REGISTRY: dict[str, type[Signal]] = {
     "Fsk": FskSignal,
     "Gfsk": GfskSignal,
     "Gmsk": GmskSignal,
+    "LTE_DL_FDD": LteDlFddSignal,
     "Msk": MskSignal,
     "nr5g": Nr5gSignal,
     "Ofdm": OfdmSignal,

@@ -72,3 +72,13 @@ Return:
 - failing or inconclusive configs
 - summary artifact path
 - whether the regression acceptance metrics were met
+
+## How To Modify This Agent
+
+Edit this file when the public regression gate changes.
+
+Most useful knobs:
+- the required config set
+- suite verdict rules
+- protocol-specific exceptions
+- whether targeted sweeps are allowed before the full sweep

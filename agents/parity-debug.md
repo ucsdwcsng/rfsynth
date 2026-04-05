@@ -83,3 +83,12 @@ Return:
 - before/after metrics
 - what still remains, if anything
 - whether the target acceptance metric was met
+
+## How To Modify This Agent
+
+Edit this file when parity work should be stricter or more protocol-specific.
+
+Most useful knobs:
+- the exact `Acceptance metrics`
+- the allowed mismatch classes
+- whether field-level or stage-level debugging is mandatory for a protocol

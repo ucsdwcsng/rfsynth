@@ -85,7 +85,16 @@ def build_compare_config(config_path: Path, out_root: Path, vector_path: Path | 
         raise ValueError("Atomic compare config must define sources or signals")
 
     if vector_path is not None:
-        signal_args["testVectorPath"] = str(vector_path)
+        signal_type = None
+        if "sources" in cfg:
+            signal_type = cfg["sources"][0]["signals"][0]["type"]
+        elif "signals" in cfg:
+            signal_type = cfg["signals"][0]["type"]
+
+        if signal_type == "LTE_DL_FDD":
+            signal_args["messagePath"] = str(vector_path)
+        else:
+            signal_args["testVectorPath"] = str(vector_path)
 
     compare_cfg_path = out_root / f"{config_path.stem}_compare_config.json"
     compare_cfg_path.write_text(json.dumps(cfg, indent=2) + "\n")

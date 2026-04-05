@@ -91,3 +91,12 @@ Return:
   - behavioral
   - unresolved
 - whether the chosen acceptance metrics were met
+
+## How To Modify This Agent
+
+Edit this file when compare policy changes.
+
+Most useful knobs:
+- add or tighten thresholds in `Acceptance metrics`
+- change the default compare mode for a protocol family
+- add required artifact outputs when new compare plots or reports are introduced
