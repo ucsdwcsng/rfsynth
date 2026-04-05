@@ -1,0 +1,146 @@
+{
+  "name": "lte_dl_fdd_profiles",
+  "profile_dir": ".",
+  "profiles": [
+    {
+      "instance_preset": "LTE_DL_FDD_763",
+      "template_filename": "lte_dl_fdd_763_qpsk_template.json",
+      "message_filename": "lte_dl_fdd_763_qpsk_message.json",
+      "match": {
+        "centerFreq_Hz": 763000000.0,
+        "NDLRB": 6,
+        "TotSubframes": 1,
+        "CP": "Normal",
+        "modulation": "QPSK",
+        "bandwidth_Hz": 1400000.0,
+        "transmissionRate_Hz": 1920000.0
+      }
+    },
+    {
+      "instance_preset": "LTE_DL_FDD_2600",
+      "template_filename": "lte_dl_fdd_2600_qpsk_template.json",
+      "message_filename": "lte_dl_fdd_2600_qpsk_message.json",
+      "match": {
+        "centerFreq_Hz": 2655000000.0,
+        "NDLRB": 6,
+        "TotSubframes": 1,
+        "CP": "Normal",
+        "modulation": "QPSK",
+        "bandwidth_Hz": 1400000.0,
+        "transmissionRate_Hz": 1920000.0
+      }
+    },
+    {
+      "instance_preset": "LTE_DL_FDD_763_NDLRB100",
+      "template_filename": "lte_dl_fdd_763_100rb_qpsk_template.json",
+      "message_filename": "lte_dl_fdd_763_100rb_qpsk_message.json",
+      "match": {
+        "centerFreq_Hz": 763000000.0,
+        "NDLRB": 100,
+        "TotSubframes": 1,
+        "CP": "Normal",
+        "modulation": "QPSK",
+        "bandwidth_Hz": 20000000.0,
+        "transmissionRate_Hz": 30720000.0
+      }
+    },
+    {
+      "instance_preset": "LTE_DL_FDD_763_NDLRB75",
+      "template_filename": "lte_dl_fdd_763_75rb_qpsk_template.json",
+      "message_filename": "lte_dl_fdd_763_75rb_qpsk_message.json",
+      "match": {
+        "centerFreq_Hz": 763000000.0,
+        "NDLRB": 75,
+        "TotSubframes": 1,
+        "CP": "Normal",
+        "modulation": "QPSK",
+        "bandwidth_Hz": 15000000.0,
+        "transmissionRate_Hz": 23040000.0
+      }
+    },
+    {
+      "instance_preset": "LTE_DL_FDD_763_NDLRB50",
+      "template_filename": "lte_dl_fdd_763_50rb_qpsk_template.json",
+      "message_filename": "lte_dl_fdd_763_50rb_qpsk_message.json",
+      "match": {
+        "centerFreq_Hz": 763000000.0,
+        "NDLRB": 50,
+        "TotSubframes": 1,
+        "CP": "Normal",
+        "modulation": "QPSK",
+        "bandwidth_Hz": 10000000.0,
+        "transmissionRate_Hz": 15360000.0
+      }
+    },
+    {
+      "instance_preset": "LTE_DL_FDD_763_NDLRB25",
+      "template_filename": "lte_dl_fdd_763_25rb_qpsk_template.json",
+      "message_filename": "lte_dl_fdd_763_25rb_qpsk_message.json",
+      "match": {
+        "centerFreq_Hz": 763000000.0,
+        "NDLRB": 25,
+        "TotSubframes": 1,
+        "CP": "Normal",
+        "modulation": "QPSK",
+        "bandwidth_Hz": 5000000.0,
+        "transmissionRate_Hz": 7680000.0
+      }
+    },
+    {
+      "instance_preset": "LTE_DL_FDD_763_16QAM",
+      "template_filename": "lte_dl_fdd_763_16qam_template.json",
+      "message_filename": "lte_dl_fdd_763_16qam_message.json",
+      "match": {
+        "centerFreq_Hz": 763000000.0,
+        "NDLRB": 6,
+        "TotSubframes": 1,
+        "CP": "Normal",
+        "modulation": "16QAM",
+        "bandwidth_Hz": 1400000.0,
+        "transmissionRate_Hz": 1920000.0
+      }
+    },
+    {
+      "instance_preset": "LTE_DL_FDD_763_EXTCP",
+      "template_filename": "lte_dl_fdd_763_extcp_qpsk_template.json",
+      "message_filename": "lte_dl_fdd_763_extcp_qpsk_message.json",
+      "match": {
+        "centerFreq_Hz": 763000000.0,
+        "NDLRB": 6,
+        "TotSubframes": 1,
+        "CP": "Extended",
+        "modulation": "QPSK",
+        "bandwidth_Hz": 1400000.0,
+        "transmissionRate_Hz": 1920000.0
+      }
+    },
+    {
+      "instance_preset": "LTE_DL_FDD_763_5SF",
+      "template_filename": "lte_dl_fdd_763_5sf_qpsk_template.json",
+      "message_filename": "lte_dl_fdd_763_5sf_qpsk_message.json",
+      "match": {
+        "centerFreq_Hz": 763000000.0,
+        "NDLRB": 6,
+        "TotSubframes": 5,
+        "CP": "Normal",
+        "modulation": "QPSK",
+        "bandwidth_Hz": 1400000.0,
+        "transmissionRate_Hz": 1920000.0
+      }
+    },
+    {
+      "instance_preset": "LTE_DL_FDD_763_NDLRB15",
+      "template_filename": "lte_dl_fdd_763_15rb_qpsk_template.json",
+      "message_filename": "lte_dl_fdd_763_15rb_qpsk_message.json",
+      "match": {
+        "centerFreq_Hz": 763000000.0,
+        "NDLRB": 15,
+        "TotSubframes": 1,
+        "CP": "Normal",
+        "modulation": "QPSK",
+        "bandwidth_Hz": 3000000.0,
+        "transmissionRate_Hz": 3840000.0
+      }
+    }
+  ]
+}

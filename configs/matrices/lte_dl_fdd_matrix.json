@@ -1,0 +1,42 @@
+{
+  "name": "lte_dl_fdd_matrix",
+  "defaults": {
+    "txPower_db": -68,
+    "nPacket": 1,
+    "idleTime": 0,
+    "rxSampleRate_Hz": 122880000.0,
+    "tot_time": 0.02,
+    "trafficType": {
+      "type": "periodic",
+      "transmissionPerSec": 1
+    }
+  },
+  "waveform_axes": {
+    "NDLRB": [
+      6,
+      15,
+      25,
+      50,
+      75,
+      100
+    ],
+    "CP": [
+      "Normal",
+      "Extended"
+    ],
+    "TotSubframes": [
+      1,
+      5
+    ],
+    "modulation": [
+      "QPSK",
+      "16QAM"
+    ]
+  },
+  "placement_axes": {
+    "centerFreq_Hz": [
+      763000000.0,
+      2655000000.0
+    ]
+  }
+}
