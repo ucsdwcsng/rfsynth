@@ -1,9 +1,10 @@
 # `rfsynth`
 
-`rfsynth` is an RF data generation and replay platform for spectrum information systems. The repository has two major execution paths:
+`rfsynth` is an RF data generation and replay platform for spectrum information systems. The repository now has three practical execution paths:
 
-- synthetic IQ and metadata generation in MATLAB
-- compressed artifact generation in MATLAB followed by OTA replay through Python, GNU Radio, and UHD
+- Python-native synthetic IQ, plotting, verification, and simulated replay from short JSON scenes
+- MATLAB synthetic IQ and metadata generation from YAML or JSON
+- MATLAB compressed artifact generation followed by OTA replay through Python, GNU Radio, and UHD
 
 The fastest way to navigate the repo is:
 
@@ -16,13 +17,30 @@ The fastest way to navigate the repo is:
 
 ## Part 1: Using `rfsynth`
 
-For the MATLAB path, the output is synthesized IQ at a configured observation point. It is not a hardware receive capture. The generator creates signal content, expands traffic into transmissions, applies source/channel effects, and writes the final IQ and metadata seen at the configured `Rx`.
+For both the Python-native and MATLAB synthetic paths, the output is synthesized IQ at a configured observation point. It is not a hardware receive capture. The generator creates signal content, expands traffic into transmissions, applies source/channel effects, and writes the final IQ and metadata seen at the configured `Rx`.
+
+### Python-native milestone
+
+The repo now includes a Python-native milestone-1 path under [rfsynth/native](/Users/dineshb/repos/signal-processing/rfsynth/rfsynth/native). This path is intentionally JSON-first and currently covers:
+
+- scene loading and normalization from the short JSON schema
+- synthetic IQ rendering to `.32cf`
+- metadata and scoring JSON emission
+- plotting and visual verification
+- simulated replay planning and dry-run replay output
+- a scaffolded direct-UHD replay backend for the next milestone
+
+The existing MATLAB path remains the behavior oracle during migration.
 
 ### Choose a workflow
 
 | Goal | Entry point | Main output |
 | --- | --- | --- |
 | Check config structure only | `scripts/check_configs.py` | pass/fail report |
+| Generate one synthetic scene from Python | `python -m rfsynth.cli generate` | one composite `.32cf` plus metadata |
+| Plot one synthetic scene from Python artifacts | `python -m rfsynth.cli plot` | plot bundle |
+| Verify one synthetic scene from Python artifacts | `python -m rfsynth.cli verify` | `verify.json` |
+| Compile and simulate replay from Python artifacts | `python -m rfsynth.cli replay simulate` | simulated replay timeline |
 | Generate one synthetic scene from YAML | `matlab/examples/auto_siggen.m` | one composite `.32cf` plus metadata |
 | Generate one synthetic scene from JSON | `matlab/examples/run_synthetic_json.m` | one composite `.32cf` plus metadata |
 | Plot and visually verify a synthetic scene | `scripts/plot_and_verify_synthetic.py` | plots plus `verify.json` |
@@ -50,9 +68,38 @@ In practical terms:
 - `Rx` defines the final synthetic output viewpoint.
 - `Tx` only matters in the compressed / OTA path.
 
-### Complete synthetic flow
+### Python-native synthetic flow
 
-This is the current synthetic-only path used for configs, tests, plotting, and verification.
+This is the new JSON-first synthetic path implemented in Python.
+
+```mermaid
+flowchart LR
+    A["Short JSON scene"] --> B["python -m rfsynth.cli check"]
+    A --> C["python -m rfsynth.cli generate"]
+    C --> D["load_scene()"]
+    D --> E["normalize short/verbose JSON"]
+    E --> F["Scene / SourceSpec / SignalSpec / TrafficSpec"]
+    F --> G["render_synthetic()"]
+    G --> H["waveform burst generation per energy"]
+    H --> I["source effects + frequency placement"]
+    I --> J["composite Rx IQ"]
+    J --> K[".32cf"]
+    J --> L[".json metadata"]
+    J --> M["_scoring.json"]
+    K --> N["python -m rfsynth.cli plot"]
+    L --> N
+    N --> O["time / PSD / spectrogram / occupancy / overlay plots"]
+    K --> P["python -m rfsynth.cli verify"]
+    L --> P
+    P --> Q["verify.json"]
+    K --> R["python -m rfsynth.cli replay simulate"]
+    L --> R
+    R --> S["sim replay timeline JSON"]
+```
+
+### MATLAB synthetic flow
+
+This is the legacy/reference synthetic path used as the MATLAB oracle.
 
 ```mermaid
 flowchart LR
@@ -82,6 +129,33 @@ flowchart LR
 ```
 
 ### Synthetic quick start
+
+Run the JSON-first Python-native path:
+
+```bash
+cd /Users/dineshb/repos/signal-processing/rfsynth
+PYTHONPATH=/Users/dineshb/repos/signal-processing/rfsynth \
+/Users/dineshb/repos/signal-processing/rfsynth-python/.venv/bin/python \
+  -m rfsynth.cli check configs/synthetic_examples/ofdm_am_adjacent_simple.json
+
+PYTHONPATH=/Users/dineshb/repos/signal-processing/rfsynth \
+/Users/dineshb/repos/signal-processing/rfsynth-python/.venv/bin/python \
+  -m rfsynth.cli generate configs/synthetic_examples/ofdm_am_adjacent_simple.json --out /tmp/rfsynth_python_demo
+
+PYTHONPATH=/Users/dineshb/repos/signal-processing/rfsynth \
+/Users/dineshb/repos/signal-processing/rfsynth-python/.venv/bin/python \
+  -m rfsynth.cli plot /tmp/rfsynth_python_demo/scene_ofdm_am_adjacent_simple
+
+PYTHONPATH=/Users/dineshb/repos/signal-processing/rfsynth \
+/Users/dineshb/repos/signal-processing/rfsynth-python/.venv/bin/python \
+  -m rfsynth.cli verify /tmp/rfsynth_python_demo/scene_ofdm_am_adjacent_simple
+
+PYTHONPATH=/Users/dineshb/repos/signal-processing/rfsynth \
+/Users/dineshb/repos/signal-processing/rfsynth-python/.venv/bin/python \
+  -m rfsynth.cli replay simulate /tmp/rfsynth_python_demo/scene_ofdm_am_adjacent_simple
+```
+
+Run the existing MATLAB path:
 
 Validate configs first:
 
@@ -120,13 +194,14 @@ Export plots and metadata into the repo-local test output tree:
 
 ### Current config surfaces
 
-The repo currently supports three config frontends:
+The repo currently supports four config frontends:
 
+- short JSON synthetic scenes for the Python-native path
 - synthetic YAML through `auto_siggen`
 - synthetic JSON through `run_synthetic_json`
 - compressed YAML through `auto_compressed_siggen`
 
-The recommended human-authored format is the short synthetic JSON form documented in [CONFIG_FORMAT.md](./CONFIG_FORMAT.md). Example:
+The recommended human-authored format is the short synthetic JSON form documented in [CONFIG_FORMAT.md](./CONFIG_FORMAT.md). It is the canonical product-facing format for the Python-native path and is also accepted by the MATLAB JSON wrapper. Example:
 
 - [configs/synthetic_examples/ofdm_am_adjacent_simple.json](./configs/synthetic_examples/ofdm_am_adjacent_simple.json)
 
@@ -201,8 +276,9 @@ Python / OTA replay:
 
 The current architecture is split deliberately:
 
-- MATLAB owns waveform semantics, traffic expansion, source/channel effects, metadata generation, synthetic IQ generation, and compressed artifact generation.
-- Python owns OTA bundle handling, metadata wall-clock shifting, and SDR replay orchestration.
+- Python-native `rfsynth/native` now owns short-JSON normalization, synthetic rendering, plotting, visual verification, and simulated replay.
+- MATLAB still owns the legacy/reference waveform path and the compressed-generation path.
+- The older Python OTA layer still owns the current GNU Radio/UHD replay path for compressed bundles.
 
 ### Core abstraction model
 

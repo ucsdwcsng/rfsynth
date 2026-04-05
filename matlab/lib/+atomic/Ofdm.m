@@ -2,6 +2,7 @@ classdef Ofdm < atomic.Signal
     properties (SetAccess = private)
         Nfft (1,1) double {mustBeMember(Nfft,[64, 128, 256, 512, 1024, 2048])} = 64;
         ofdm_params struct
+        testVectorPath string = "";
     end
 
     methods
@@ -31,7 +32,8 @@ classdef Ofdm < atomic.Signal
                 'modOrder', 4, ...
                 'symbolTime_s', nan, ...
                 'cpTime_s', nan, ...
-                'transmissionTotTime', 0.004);
+                'transmissionTotTime', 0.004, ...
+                'testVectorPath', "");
 
             [opts, ~] = parseOptions(defaults, varargin{:});
             ofdm_params = wcsng_ofdm_param_gen('N_SC', opts.Nfft);
@@ -61,10 +63,16 @@ classdef Ofdm < atomic.Signal
 
             this.Nfft = opts.Nfft;
             this.ofdm_params = ofdm_params;
+            this.testVectorPath = string(opts.testVectorPath);
         end
 
         function dataIQ = generateTransmission(this)
-            [dataIQ, ~] = ofdm_tx(this.ofdm_params);
+            if strlength(this.testVectorPath) > 0
+                vec = load_atomic_test_vector(this.testVectorPath);
+                [dataIQ, ~] = ofdm_tx_from_test_vector(this.ofdm_params, vec.payload);
+            else
+                [dataIQ, ~] = ofdm_tx(this.ofdm_params);
+            end
         end
 
         function regenerateWithRandomParams(this)

@@ -132,7 +132,7 @@ classdef Source < handle% constant for metadata type id
                     signalI.verifyFreqBounds(rx.freqCenter_Hz + [-rx.sampleRate_Hz/2  rx.sampleRate_Hz/2]);
                     
                     % add rx props to metadata
-                    signalI.requiredMetadata.setRxProps(rx.freqCenter_Hz, rx.sampleRate_Hz, -5);
+                    signalI.requiredMetadata.setRxProps(rx.freqCenter_Hz, rx.sampleRate_Hz, 1000);
                     
                     % TODO: Check if exp(2j*pi*n) is stable for large values of n
                     data = data.*exp(2j*pi*delf*(0:(numel_samples_iter-1)).');
@@ -189,7 +189,7 @@ classdef Source < handle% constant for metadata type id
                     signalI.verifyFreqBounds(rx.freqCenter_Hz + [-rx.sampleRate_Hz/2  rx.sampleRate_Hz/2]);
                     
                     % add rx props to metadata
-                    signalI.requiredMetadata.setRxProps(rx.freqCenter_Hz, rx.sampleRate_Hz, -5);
+                    signalI.requiredMetadata.setRxProps(rx.freqCenter_Hz, rx.sampleRate_Hz, 1000);
                     
                     dataIQ = [dataIQ;data];
                     samplesPerChunk = [samplesPerChunk;numel(data)];

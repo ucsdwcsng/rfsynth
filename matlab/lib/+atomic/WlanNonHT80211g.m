@@ -6,8 +6,10 @@ classdef WlanNonHT80211g < atomic.Signal
         nPacket (1,1) double                    = 1;    % number of packets to transmit
         idleTime (1,1) double                   = 0;    % idle time between packets
         scramblerInitialization (1,1) double    = 93;   % scrambler initialization
+        mcs (1,1) double                        = 0;    % non-HT MCS
         message (1,:)                                   % message to transmit
         cfgNonHT wlanNonHTConfig                        % wlanNonHTConfig object
+        testVectorPath string = "";
     end
     
     % constructor
@@ -18,8 +20,10 @@ classdef WlanNonHT80211g < atomic.Signal
                 'nPacket', 1, ...
                 'idleTime', 0, ...
                 'scramblerInitialization', 93, ...
+                'mcs', 0, ...
                 'psduLength', 1000, ...
-                'message', []);
+                'message', [], ...
+                'testVectorPath', "");
             
             % Parse the optional parameters using the helper function
             [opts, unmatched] = parseOptions(defaults, varargin{:});
@@ -34,45 +38,51 @@ classdef WlanNonHT80211g < atomic.Signal
             this.nPacket = opts.nPacket;
             this.idleTime = opts.idleTime;
             this.scramblerInitialization = opts.scramblerInitialization;
+            this.mcs = opts.mcs;
+            this.testVectorPath = string(opts.testVectorPath);
 
-            if ~isempty(opts.message)
+            hasExplicitMessage = ~isempty(opts.message);
+            if strlength(this.testVectorPath) > 0
+                vec = load_atomic_test_vector(this.testVectorPath);
+                if isfield(vec.payload, 'message_bits')
+                    this.message = logical(vec.payload.message_bits(:));
+                    hasExplicitMessage = true;
+                end
+                if isfield(vec.payload, 'scrambler_initialization')
+                    this.scramblerInitialization = double(vec.payload.scrambler_initialization(1));
+                end
+            elseif hasExplicitMessage
                 this.message = opts.message;
             else
-                this.message = randi([0 1], opts.psduLength,1);
+                this.message = randi([0 1], opts.psduLength * 8,1);
             end
-            
-            SSID = 'RFSYNTH_BEACON'; % Network SSID
-            beaconInterval = this.idleTime; % In Time units (TU)
-            band = 5;             % Band, 5 or 2.4 GHz
-            chNum = 52;           % Channel number, corresponds to 5260MHz
-            bitsPerByte = 8;      % Number of bits in 1 byte
-            
-            % Create Beacon frame-body configuration object
-            frameBodyConfig = wlanMACManagementConfig;
-            frameBodyConfig.BeaconInterval = beaconInterval;  % Beacon Interval in Time units (TUs)
-            frameBodyConfig.SSID = SSID;                      % SSID (Name of the network)
-            dsElementID = 3;                                  % DS Parameter IE element ID
-            dsInformation = dec2hex(chNum, 2);                % DS Parameter IE information
-            frameBodyConfig = frameBodyConfig.addIE(dsElementID, dsInformation);  % Add DS Parameter IE to the configuration
-            
-            % Create Beacon frame configuration object
-            beaconFrameConfig = wlanMACFrameConfig('FrameType', 'Beacon');
-            beaconFrameConfig.ManagementConfig = frameBodyConfig;
-            
-            % Generate Beacon frame bits
-            [beacon, mpduLength] = wlanMACFrame(beaconFrameConfig, 'OutputFormat', 'bits');
-            
-            % Calculate center frequency for the given band and channel number
-            % fc = helperWLANChannelFrequency(chNum, band);
-            
-            this.cfgNonHT = wlanNonHTConfig;       % Create a wlanNonHTConfig object
-            this.cfgNonHT.PSDULength = mpduLength; % PSDU length in bytes
-            osf = 1;                        % Oversampling factor
-            Rs = wlanSampleRate(this.cfgNonHT, 'OversamplingFactor', osf);  % Get the sampling rate
-            
-            this.idleTime = beaconInterval*1024e-6 * 0;
-            this.message = beacon;
-            
+            if ~hasExplicitMessage
+                SSID = 'RFSYNTH_BEACON'; % Network SSID
+                beaconInterval = this.idleTime; % In Time units (TU)
+                chNum = 52;           % Channel number, corresponds to 5260MHz
+
+                frameBodyConfig = wlanMACManagementConfig;
+                frameBodyConfig.BeaconInterval = beaconInterval;
+                frameBodyConfig.SSID = SSID;
+                dsElementID = 3;
+                dsInformation = dec2hex(chNum, 2);
+                frameBodyConfig = frameBodyConfig.addIE(dsElementID, dsInformation);
+
+                beaconFrameConfig = wlanMACFrameConfig('FrameType', 'Beacon');
+                beaconFrameConfig.ManagementConfig = frameBodyConfig;
+                [beacon, mpduLength] = wlanMACFrame(beaconFrameConfig, 'OutputFormat', 'bits');
+                this.message = beacon;
+            else
+                mpduLength = max(1, ceil(numel(this.message) / 8));
+            end
+
+            this.cfgNonHT = wlanNonHTConfig;
+            this.cfgNonHT.MCS = this.mcs;
+            this.cfgNonHT.PSDULength = mpduLength;
+            osf = 1;
+            Rs = wlanSampleRate(this.cfgNonHT, 'OversamplingFactor', osf);
+            this.idleTime = 0;
+
             % this.cfgNonHT.PSDULength = psduLength;
             % BW = regexp(this.cfgNonHT.ChannelBandwidth,'\d*','Match');
             this.transmissionRate_Hz = Rs;
@@ -87,7 +97,12 @@ classdef WlanNonHT80211g < atomic.Signal
             % :returns: IQ data of the transmission
             % :rtype: vector[complex]
             
-            dataIQ = wlanWaveformGenerator(this.message, this.cfgNonHT, 'OversamplingFactor', 1, 'IdleTime', this.idleTime);
+            dataIQ = wlanWaveformGenerator( ...
+                double(this.message(:)), ...
+                this.cfgNonHT, ...
+                'OversamplingFactor', 1, ...
+                'IdleTime', this.idleTime, ...
+                'ScramblerInitialization', this.scramblerInitialization);
         end
         
     end

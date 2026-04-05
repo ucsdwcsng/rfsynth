@@ -6,6 +6,7 @@ classdef Qam < atomic.Signal
         nDataSymb (1,1) double {mustBePositive, mustBeInteger} = 100;
         beta (1,1) double {mustBeNonnegative} = 0.35;
         span (1,1) double {mustBePositive, mustBeInteger} = 10;
+        testVectorPath string = "";
     end
 
     methods
@@ -19,7 +20,8 @@ classdef Qam < atomic.Signal
                 'modOrder', 4, ...
                 'beta', 0.35, ...
                 'span', 10, ...
-                'transmissionTotTime', 0.004);
+                'transmissionTotTime', 0.004, ...
+                'testVectorPath', "");
 
             [opts, ~] = parseOptions(defaults, varargin{:});
             bandwidth_Hz = opts.transmissionRate_Hz * (1 + opts.beta);
@@ -38,14 +40,20 @@ classdef Qam < atomic.Signal
             this.samplesPerSymbol = opts.samplesPerSymbol;
             this.beta = opts.beta;
             this.span = opts.span;
+            this.testVectorPath = string(opts.testVectorPath);
             this.updateModOrderReport(opts.modOrder);
             this.nDataSymb = max(1, round(opts.transmissionTotTime * this.symbolRate));
             this.transmissionRate_Hz = this.transmissionRate_Hz * this.samplesPerSymbol;
         end
 
         function dataIQ = generateTransmission(this)
-            x = randi([0 this.modOrder - 1], this.nDataSymb, 1);
-            y1 = qammod(x, this.modOrder, 'gray');
+            if strlength(this.testVectorPath) > 0
+                vec = load_atomic_test_vector(this.testVectorPath);
+                y1 = vec.payload.symbols(:);
+            else
+                x = randi([0 this.modOrder - 1], this.nDataSymb, 1);
+                y1 = qammod(x, this.modOrder, 'gray');
+            end
             y2 = upsample(y1, this.samplesPerSymbol);
             rrc = rcosdesign(this.beta, this.span, this.samplesPerSymbol);
             rrc = rrc.' / rms(rrc);

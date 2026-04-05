@@ -1,18 +1,20 @@
 # Architecture
 
-This document describes the current `rfsynth` flow end to end, including config ingestion, synthetic IQ generation, plotting and verification, compressed artifact generation, and OTA replay.
+This document describes the current `rfsynth` flow end to end, including the new Python-native synthetic path, the legacy/reference MATLAB synthetic path, plotting and verification, compressed artifact generation, and OTA replay.
 
 ## 1. System split
 
-`rfsynth` is intentionally split into two subsystems:
+`rfsynth` is now split into three practical subsystems:
 
-- MATLAB: waveform semantics, traffic expansion, source/channel effects, metadata generation, synthetic IQ generation, compressed artifact generation
-- Python: config checking, plotting, visual verification, test-output export, OTA bundle handling, metadata offsetting, and SDR replay orchestration
+- Python-native: short-JSON scene loading, synthetic rendering, metadata emission, plotting, visual verification, simulated replay, and the direct-UHD replay scaffold
+- MATLAB: legacy/reference waveform semantics, traffic expansion, source/channel effects, metadata generation, synthetic IQ generation, compressed artifact generation
+- Legacy Python OTA: config checking, test-output export, OTA bundle handling, metadata offsetting, and GNU Radio/UHD replay orchestration
 
 The most important architectural boundary is:
 
-- MATLAB decides what the scene means.
-- Python decides how to inspect it or replay it.
+- Python-native now supports a full synthetic path from JSON scene to IQ, metadata, plots, and simulated replay.
+- MATLAB remains the behavior oracle during migration and still owns compressed generation.
+- The older OTA Python code remains downstream of the MATLAB compressed path.
 
 ## 2. Canonical object model
 
@@ -43,10 +45,11 @@ Meaning of each object:
 
 ## 3. Current config surfaces
 
-There are three supported frontends:
+There are four supported frontends:
 
 | Flow | Config type | Entry point |
 | --- | --- | --- |
+| Python-native synthetic generation | JSON | `python -m rfsynth.cli generate` |
 | Synthetic generation | YAML | `matlab/examples/auto_siggen.m` |
 | Synthetic generation | JSON | `matlab/examples/run_synthetic_json.m` |
 | Compressed generation | YAML | `matlab/examples/auto_compressed_siggen.m` |
@@ -59,7 +62,98 @@ Detailed field definitions are documented in:
 
 - [CONFIG_FORMAT.md](./CONFIG_FORMAT.md)
 
-## 4. Synthetic generation flow
+## 4. Python-native synthetic generation flow
+
+The new Python-native path is JSON-first and is the target architecture for the rebuild.
+
+```mermaid
+flowchart LR
+    A["Short JSON scene"] --> B["load_scene()"]
+    B --> C["normalize_generation / normalize_rx / normalize_sources"]
+    C --> D["Scene"]
+    D --> E["render_synthetic()"]
+    E --> F["compute_transmission_windows()"]
+    F --> G["generate_burst() per atomic waveform"]
+    G --> H["resample + frequency shift + source effects"]
+    H --> I["composite IQ at Rx viewpoint"]
+    I --> J["<base>.32cf"]
+    I --> K["<base>.json"]
+    I --> L["<base>_scoring.json"]
+    J --> M["plot_artifacts()"]
+    K --> M
+    M --> N["time / PSD / spectrogram / occupancy / overlay PNGs"]
+    J --> O["verify_artifacts()"]
+    K --> O
+    O --> P["<base>_verify.json"]
+    K --> Q["compile_replay()"]
+    Q --> R["ReplayPlan"]
+    R --> S["run_replay(..., backend='sim')"]
+    S --> T["<base>_sim_replay.json"]
+    R --> U["run_replay(..., backend='uhd')"]
+    U --> V["Direct-UHD scaffold for milestone 2"]
+```
+
+### 4.1 Python-native package layout
+
+The new code lives under `rfsynth/native/`:
+
+- `models.py`: `TrafficSpec`, `SignalSpec`, `SourceSpec`, `RxSpec`, `Scene`, `ArtifactBundle`, `ReplayPlan`
+- `scene.py`: short/verbose JSON normalization and validation
+- `waveforms.py`: atomic burst generators and traffic expansion
+- `render.py`: synthetic composite rendering and metadata/scoring emission
+- `plotting.py`: plot generation and visual verification
+- `replay.py`: replay-plan compilation plus simulated and UHD-shaped backends
+- `cli.py`: thin CLI surface
+
+### 4.2 Python-native public interface
+
+The top-level Python package exports:
+
+- `load_scene(path_or_dict) -> Scene`
+- `render_synthetic(scene, out_dir) -> ArtifactBundle`
+- `plot_artifacts(bundle_or_base) -> PlotBundle`
+- `verify_artifacts(bundle_or_base) -> dict`
+- `compile_replay(scene_or_bundle) -> ReplayPlan`
+- `run_replay(plan, backend="sim"|"uhd") -> ReplayRunReport`
+
+### 4.3 Python-native config normalization
+
+The canonical user-facing config is the short JSON schema:
+
+- `output`
+- `rx`
+- `signals`
+
+The Python-native loader also accepts the current verbose JSON schema and normalizes both into the same internal `Scene` model. This keeps compatibility with the existing public configs while making the short JSON form the product-facing default.
+
+### 4.4 Python-native waveform coverage
+
+Milestone 1 includes Python-native implementations for the current public atomic inventory:
+
+- `Am`
+- `Bluetooth`
+- `Cpfsk`
+- `Ds3`
+- `DummySignal`
+- `Fm`
+- `FreqHopping`
+- `Fsk`
+- `Gfsk`
+- `Gmsk`
+- `Msk`
+- `Ofdm`
+- `Pam`
+- `Psk`
+- `Qam`
+- `RandomSymbol`
+- `Sine`
+- `Ssb`
+- `WidebandThermalWgn`
+- `WlanNonHT80211g`
+
+The Python-native implementation aims for behavior-level parity with the MATLAB path, not sample-for-sample equality.
+
+## 5. MATLAB synthetic generation flow
 
 The synthetic path is the main path for generated IQ plus metadata.
 
@@ -82,7 +176,7 @@ flowchart LR
     L --> O["Scoring JSON"]
 ```
 
-### 4.1 Synthetic config normalization
+### 5.1 Synthetic config normalization
 
 The synthetic wrappers both normalize into the same internal ingredients:
 
@@ -104,7 +198,7 @@ Important convenience behavior:
 - if `trafficType` is omitted in the short JSON form, it defaults to periodic traffic at `100` transmissions per second
 - default source channel is identity and default impairments are zero
 
-### 4.2 Object construction
+### 5.2 Object construction
 
 After normalization:
 
@@ -113,7 +207,7 @@ After normalization:
 3. each source constructs one or more concrete `atomic.Signal` subclasses
 4. `VirtualSignalEngine` owns the final scene assembly
 
-### 4.3 Signal generation internals
+### 5.3 Signal generation internals
 
 For each signal:
 
@@ -127,7 +221,7 @@ For each signal:
 4. the generated samples are resampled and shifted into the configured `Rx` observation band
 5. `VirtualSignalEngine` sums all source contributions into one composite IQ output
 
-### 4.4 Synthetic outputs
+### 5.4 Synthetic outputs
 
 The synthetic path writes:
 
@@ -137,9 +231,9 @@ The synthetic path writes:
 
 These are written through `VirtualSignalEngine.writeDataFiles(...)`.
 
-## 5. Plotting and visual verification flow
+## 6. Plotting and visual verification flow
 
-The plotting/verification path is synthetic-only and is intentionally separate from MATLAB generation.
+The plotting/verification path is synthetic-only and now runs directly on Python-native artifacts or MATLAB-generated artifacts with the same file layout.
 
 ```mermaid
 flowchart LR
@@ -166,7 +260,7 @@ What the plotter does:
 
 This is how the repo currently validates the synthetic atomic configs and the sneaky-neighbor scenes.
 
-## 6. Repo-local test-output export flow
+## 7. Repo-local test-output export flow
 
 The repo keeps generated IQ files in `/tmp`, but stores plots and metadata snapshots inside the repo for inspection.
 
@@ -197,7 +291,35 @@ Each exported bundle typically contains:
 
 No `.32cf` files are copied into the repo.
 
-## 7. Compressed generation flow
+## 8. MATLAB oracle comparison flow
+
+The migration strategy uses MATLAB as a behavior oracle rather than requiring sample-for-sample equality.
+
+```mermaid
+flowchart LR
+    A["Public JSON config"] --> B["render_synthetic() in Python"]
+    A --> C["run_synthetic_json.m in MATLAB"]
+    B --> D["Python metadata + verify.json"]
+    C --> E["MATLAB metadata + verify.json"]
+    D --> F["compare_python_to_matlab.py"]
+    E --> F
+    F --> G["source/signal/energy counts"]
+    F --> H["time/frequency box comparisons"]
+    F --> I["bandwidth comparisons"]
+    F --> J["visual verification verdict comparison"]
+```
+
+Current oracle acceptance is behavior-level:
+
+- source count
+- signal count
+- energy count
+- signal and energy time boxes
+- signal and energy frequency boxes
+- bandwidth
+- visual verification verdict
+
+## 9. Compressed generation flow
 
 The compressed path is used when the goal is long-duration replay rather than a single fully synthesized IQ output.
 
@@ -225,7 +347,7 @@ Key distinction from the synthetic path:
 
 `Tx` objects matter here because the engine must decide which logical transmitter can replay which signal without overlap conflicts.
 
-## 8. OTA replay flow
+## 10. OTA replay flow
 
 The Python OTA path consumes the compressed bundle and maps it to real radios.
 
@@ -248,7 +370,7 @@ This path assumes:
 - the `_energy_meta.csv` schedule matches the payload IQ files
 - the radio JSON config maps bundle artifacts to real UHD devices
 
-## 9. Implemented waveform inventory
+## 11. Implemented waveform inventory
 
 Current concrete atomics in `matlab/lib/+atomic/`:
 

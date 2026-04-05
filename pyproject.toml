@@ -1,14 +1,20 @@
 [tool.poetry]
 name = "rfsynth"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
+description = "Python-native RF scene generation, verification, and replay tooling"
+authors = ["Dinesh Bharadia <dineshb@ucsd.edu>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-zmq = "^0.0.0"
 numpy = "^2.0.0"
+matplotlib = "^3.9.0"
+PyYAML = "^6.0.2"
+scipy = "^1.14.0"
+zmq = "^0.0.0"
+
+[tool.poetry.scripts]
+rfsynth = "rfsynth.cli:main"
 
 
 [build-system]

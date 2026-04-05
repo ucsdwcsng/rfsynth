@@ -1,12 +1,13 @@
 # Config Format
 
-`rfsynth` currently supports two synthetic-config frontends and one compressed-generation frontend:
+`rfsynth` currently supports three synthetic-config frontends and one compressed-generation frontend:
 
+- JSON synthetic config via the Python-native CLI and library
 - YAML synthetic config via [auto_siggen.m](/Users/dineshb/repos/signal-processing/rfsynth/matlab/examples/auto_siggen.m)
 - JSON synthetic config via [run_synthetic_json.m](/Users/dineshb/repos/signal-processing/rfsynth/matlab/examples/run_synthetic_json.m)
 - YAML compressed-generation config via [auto_compressed_siggen.m](/Users/dineshb/repos/signal-processing/rfsynth/matlab/examples/auto_compressed_siggen.m)
 
-The shortest format is the JSON synthetic format. That is the easiest one to hand-author.
+The shortest format is the JSON synthetic format. That is the easiest one to hand-author and it is the canonical product-facing format for the Python-native path.
 
 ## Synthetic YAML
 
@@ -55,6 +56,15 @@ Notes:
 ## Synthetic JSON
 
 Use this with:
+
+```bash
+cd /Users/dineshb/repos/signal-processing/rfsynth
+PYTHONPATH=/Users/dineshb/repos/signal-processing/rfsynth \
+/Users/dineshb/repos/signal-processing/rfsynth-python/.venv/bin/python \
+  -m rfsynth.cli generate configs/synthetic_examples/ofdm_am_adjacent_simple.json --out /tmp/rfsynth_python_demo
+```
+
+or with:
 
 ```matlab
 run_synthetic_json('configs/synthetic_examples/ofdm_am_adjacent_simple.json');
@@ -120,6 +130,8 @@ Defaults applied by [run_synthetic_json.m](/Users/dineshb/repos/signal-processin
 - default source channel is `IDENTITY`
 - default source impairments are zero
 - if `trafficType` is omitted, it defaults to periodic at `100` transmissions per second
+
+The Python-native loader in [scene.py](/Users/dineshb/repos/signal-processing/rfsynth/rfsynth/native/scene.py) applies the same practical defaults.
 
 For `Ofdm`, `symbolTime_s` and `cpTime_s` are optional human-readable timing fields. The implementation derives them from `Nfft` and `transmissionRate_Hz`, and if you provide them they are checked for consistency.
 
