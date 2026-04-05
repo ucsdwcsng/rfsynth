@@ -24,6 +24,35 @@ Run the correct compare loop for one target and produce artifacts that make the 
 - `compare.json`
 - concise interpretation of the result
 
+## Acceptance metrics
+
+Choose the correct target before running the compare.
+
+### `scene-behavioral`
+
+Treat the compare as passing only if all of these are true:
+
+- `compare_python_to_matlab.py` returns `ok = true`
+- `python_verify.verdict == matlab_verify.verdict`
+- signal box counts match
+- energy box counts match
+- time/frequency box comparison passes with no remaining reasons
+
+### `atomic-exact`
+
+Treat the compare as passing only if one of these is true:
+
+- `exact_match = true`
+- or `allclose_atol_1e-6 = true`
+
+### `near-exact`
+
+Only use this target when the controller explicitly allows it. Treat it as passing only if:
+
+- `cross_correlation_peak_magnitude >= 0.995`
+- `correlation_magnitude >= 0.995`
+- `gain_aligned_relative_rmse <= 1e-2`
+
 ## Working rules
 
 1. Choose the compare mode before running anything.
@@ -48,6 +77,8 @@ Stop when one of these is true:
 - behavioral parity is established and exact parity is not the target
 - the mismatch class is clear enough for `agents/parity-debug.md`
 
+If the chosen acceptance metrics are not met, do not soften the verdict. Mark it unresolved and hand off to `agents/parity-debug.md`.
+
 ## Handoff format
 
 Return:
@@ -59,3 +90,4 @@ Return:
   - near-exact
   - behavioral
   - unresolved
+- whether the chosen acceptance metrics were met

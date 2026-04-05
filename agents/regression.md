@@ -23,6 +23,23 @@ Run the repo’s public synthetic checks and report whether the branch is still 
 - suite result
 - list of regressions, if any
 
+## Acceptance metrics
+
+Treat the branch as regression-green only if all of these are true:
+
+- Config validation:
+  - `scripts/check_configs.py` passes for every checked config
+- Unit tests:
+  - `python -m unittest tests.test_native_pipeline` exits `0`
+- Public synthetic suite:
+  - every public config is rendered
+  - every public config finishes verification
+  - all configs are `Visual pass`
+  - exception: `DummySignal` may remain `Visual fail` because it is intentionally silent
+- New target coverage:
+  - the newly added protocol config is included in the public sweep
+  - the newly added protocol config is `Visual pass`
+
 ## Working rules
 
 1. Run config validation first.
@@ -44,6 +61,8 @@ Stop when:
 - the branch is green
 - or a clear regression list is produced
 
+Do not call the branch green if any acceptance metric above is unmet.
+
 ## Handoff format
 
 Return:
@@ -52,3 +71,4 @@ Return:
 - config count swept
 - failing or inconclusive configs
 - summary artifact path
+- whether the regression acceptance metrics were met

@@ -13,6 +13,7 @@ from .fsk import FskSignal
 from .gfsk import GfskSignal
 from .gmsk import GmskSignal
 from .msk import MskSignal
+from .nr5g import Nr5gSignal
 from .ofdm import OfdmSignal
 from .pam import PamSignal
 from .psk import PskSignal
@@ -35,6 +36,7 @@ REGISTRY: dict[str, type[Signal]] = {
     "Gfsk": GfskSignal,
     "Gmsk": GmskSignal,
     "Msk": MskSignal,
+    "nr5g": Nr5gSignal,
     "Ofdm": OfdmSignal,
     "Pam": PamSignal,
     "Psk": PskSignal,

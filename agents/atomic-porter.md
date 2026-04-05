@@ -25,6 +25,26 @@ Take one atomic waveform from the MATLAB side and make it available in the Pytho
 - at least one regression test
 - a short implementation summary with the expected compare mode
 
+## Acceptance metrics
+
+Do not hand off the atomic as "ported" unless all applicable metrics below are met.
+
+- Config validation:
+  - the new config passes `scripts/check_configs.py`
+- Renderability:
+  - `render_synthetic(...)` completes without error
+  - IQ output is non-empty
+  - metadata and scoring files are written
+- Local signal sanity:
+  - signal count is at least `1`
+  - the new atomic does not produce `Visual fail` in the normal synthetic path unless it is intentionally silent
+- Test coverage:
+  - at least one targeted unit test for the atomic passes
+- Handoff readiness:
+  - the next compare mode is explicitly chosen:
+    - `scene-behavioral`
+    - or `atomic-exact`
+
 ## Working rules
 
 1. Port only one atomic per run.
@@ -44,6 +64,9 @@ Stop when all of these are true:
 - the new config is valid
 - the new test passes
 - the next compare step is clearly defined
+- the acceptance metrics above are met
+
+If the acceptance metrics are not met, keep iterating locally. Do not hand off a half-ported atomic as "done".
 
 ## Handoff format
 
@@ -52,3 +75,4 @@ Return:
 - config added
 - test added
 - whether the atomic is ready for `agents/oracle-compare.md`
+- which acceptance metrics were met

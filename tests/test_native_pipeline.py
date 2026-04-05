@@ -39,6 +39,7 @@ class NativePipelineTest(unittest.TestCase):
         subset = [
             "am.json",
             "bluetooth.json",
+            "nr5g.json",
             "ofdm.json",
             "wlan_nonht80211g.json",
         ]
@@ -158,6 +159,19 @@ class NativePipelineTest(unittest.TestCase):
             self.assertGreater(len(burst.samples), 0)
             self.assertEqual(burst.sample_rate_hz, expected_rate)
             self.assertEqual(burst.extras["mode"], args.get("mode", "LE1M"))
+
+    def test_nr5g_narrow_preset_render(self) -> None:
+        scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "nr5g.json")
+        signal = scene.sources[0].signals[0]
+        burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(len(burst.samples), 40000)
+        self.assertEqual(burst.sample_rate_hz, 40e6)
+        self.assertEqual(burst.bandwidth_hz, 10e6)
+        self.assertEqual(burst.protocol, "cellular")
+        self.assertEqual(burst.modality, "multi_carrier")
+        self.assertEqual(burst.extras["family"], "nr5g")
+        self.assertEqual(burst.extras["subCarrierSpacing_kHz"], 15.0)
+        self.assertEqual(burst.extras["numSubframes"], 1)
 
 
 if __name__ == "__main__":
