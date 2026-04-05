@@ -23,11 +23,12 @@ Use this skill when the task is to rerun the public Python-native synthetic suit
 ## Default workflow
 
 1. Validate configs first with `scripts/check_configs.py`.
-2. Run the Python-native unit tests.
-3. Run the synthetic suite with `scripts/run_python_native_suite.py`.
-4. Read `python_native_suite_summary.json`.
-5. Inspect any non-pass case directly in its output folder.
-6. If the change was parity-related, optionally run the MATLAB compare loop after the Python regression is green.
+2. Run the Python-native unit tests with the repo venv.
+3. Run matrix tests when LTE or NR matrix tooling changed.
+4. Run the synthetic suite with `scripts/run_python_native_suite.py`.
+5. Read `python_native_suite_summary.json`.
+6. Inspect any non-pass case directly in its output folder.
+7. If the change was parity-related, optionally run the MATLAB compare loop after the Python regression is green.
 
 ## Recommended commands
 
@@ -40,7 +41,8 @@ python3 scripts/check_configs.py
 Unit tests:
 
 ```bash
-python3 -m unittest tests.test_native_pipeline
+/Users/dineshb/repos/signal-processing/rfsynth-python/.venv/bin/python \
+  -m unittest tests.test_native_pipeline tests.test_lte_matrix tests.test_nr5g_matrix
 ```
 
 Public regression sweep:
@@ -69,6 +71,7 @@ Each bundle should contain:
 - `DummySignal` is expected to be special because it is intentionally silent.
 - For real waveforms, the target is `Visual pass`.
 - If a config regresses from `Visual pass` to `Inconclusive` or `Visual fail`, treat that as a real regression until explained.
+- If LTE or NR matrix tooling changed, treat matrix-test failure as a real regression.
 
 ## When to add MATLAB
 

@@ -1,6 +1,6 @@
 ---
 name: rfsynth-atomic-port
-description: Port one MATLAB atomic generator into the Python-native rfsynth runtime, wire it into the MATLAB-mirror object model, add config coverage, and leave it ready for oracle comparison and regression.
+description: Port one MATLAB atomic generator into the Python-native rfsynth runtime, keep it aligned with the MATLAB object model, and preserve the rule that production waveforms must be generated directly rather than loaded from MATLAB fixtures.
 ---
 
 # rfsynth Atomic Port
@@ -24,52 +24,51 @@ Use this skill when the task is to add one new Python-native atomic signal to `/
 - Tests:
   - `tests/test_native_pipeline.py`
 
+## Phase model
+
+- `Phase 1`: one direct narrow slice
+- `Phase 2`: direct matrix expansion
+- `Phase 3`: finish the intended runtime surface and remove remaining shortcuts
+
+At every phase:
+- compare fixtures are allowed
+- production waveform fixtures are not
+
 ## Default workflow
 
 1. Identify the MATLAB source of truth.
-   - Start with `matlab/lib/+atomic/<Name>.m`.
-   - If the current repo has a narrowed or older version, check the richer upstream source in `rfsynth-python/modules/SignalGenerator/lib/+atomic/`.
 2. Keep the MATLAB object-model split.
-   - `Signal` owns burst generation and metadata.
-   - `Source` owns source-level effects.
-   - `VirtualSignalEngine` owns scene assembly and artifact writing.
-   - Do not reintroduce a flat waveform-dispatch design.
-3. Create one Python file per atomic under `rfsynth/native/atomic/`.
-   - Subclass the Python `Signal` base.
-   - Implement `generate_transmission(self, scene, rng)`.
-   - Return a `GeneratedBurst` with `samples`, `sample_rate_hz`, `bandwidth_hz`, `protocol`, `modality`, `modulation`, and any useful `extras`.
-4. Wire the atomic into `rfsynth/native/atomic/__init__.py`.
-5. Add at least one public config in `configs/synthetic_atomic/` if the atomic is meant to be user-visible.
-6. Add or extend tests in `tests/test_native_pipeline.py`.
-7. If exact parity is realistic, add shared-vector support in:
-   - `rfsynth/native/atomic_compare.py`
-   - `matlab/examples/run_atomic_test_vector.m`
-   - any MATLAB helper needed to accept explicit vectors
-8. Run the minimum validation:
+3. Create or update one Python atomic under `rfsynth/native/atomic/`.
+4. Define the current phase and supported slice up front.
+5. Preserve parameter semantics inside that slice.
+6. Make unsupported combinations fail clearly.
+7. Wire the atomic into `rfsynth/native/atomic/__init__.py`.
+8. Add at least one public config if the atomic is meant to be user-visible.
+9. Add or extend tests in `tests/test_native_pipeline.py`.
+10. If exact parity is realistic, add shared-vector support in compare or test-vector paths only.
+11. Run minimum validation:
    - render the new config through the Python-native path
    - run visual verification
    - run oracle compare if MATLAB parity is expected
 
 ## Guardrails
 
-- One atomic per task. Do not mix multiple new protocols in the same port unless the user explicitly asks for it.
+- One atomic or one protocol knob expansion per task.
 - Prefer direct ports of the MATLAB logic over “similar-looking” approximations.
-- For standards-heavy protocols, do not assume behavioral parity is enough if the current work is parity-focused.
-- Keep short JSON config support stable. The user-facing interface remains JSON-first even though the internals mirror MATLAB.
-
-## Good targets for this skill
-
-- Adding `LTE_DL_FDD` from `/Users/dineshb/repos/signal-processing/rfsynth-python/modules/SignalGenerator/lib/+atomic/LTE_DL_FDD.m`
-- Adding `nr5g` from `/Users/dineshb/repos/signal-processing/rfsynth-python/modules/SignalGenerator/lib/+atomic/nr5g.m`
-- Porting a generic modulation family from `matlab/lib/+atomic/`
+- Keep short JSON config support stable.
+- Do not make the production runtime depend on checked-in oracle waveform, grid, or payload fixtures.
+- Do not satisfy a milestone by adding a preset matcher that ignores supported parameters.
+- If compare fixtures are needed, keep them isolated to compare, debug, or test-vector helpers.
 
 ## Expected outputs
 
-- one new Python atomic file
+- one new or updated Python atomic file
 - registry update
 - config coverage
 - test coverage
 - optional exact-compare vector support
+- one clearly documented supported slice
+- no default runtime dependency on oracle fixtures
 
 ## Answer format
 
@@ -77,5 +76,8 @@ Keep the report concrete:
 - what atomic was ported
 - what source files were used as the reference
 - what config/test files were added or changed
+- what phase target was worked
+- what supported slice was implemented
 - whether it renders
+- whether the default runtime depends on fixtures
 - whether parity is exact, behavioral, or still open

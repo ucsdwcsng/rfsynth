@@ -174,7 +174,7 @@ class NativePipelineTest(unittest.TestCase):
             self.assertEqual(burst.sample_rate_hz, expected_rate)
             self.assertEqual(burst.extras["mode"], args.get("mode", "LE1M"))
 
-    def test_lte_dl_fdd_oracle_backed_preset_render(self) -> None:
+    def test_lte_dl_fdd_direct_phase1_render(self) -> None:
         scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd.json")
         signal = scene.sources[0].signals[0]
         burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
@@ -182,11 +182,11 @@ class NativePipelineTest(unittest.TestCase):
         self.assertEqual(burst.sample_rate_hz, 1.92e6)
         self.assertEqual(burst.bandwidth_hz, 1.4e6)
         self.assertEqual(burst.protocol, "cellular")
-        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763")
+        self.assertEqual(burst.extras["runtimeMode"], "direct")
         self.assertEqual(burst.extras["NDLRB"], 6)
         self.assertEqual(burst.extras["TotSubframes"], 1)
 
-    def test_lte_dl_fdd_2600_oracle_backed_preset_render(self) -> None:
+    def test_lte_dl_fdd_2600_direct_phase1_render(self) -> None:
         scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd_2600.json")
         signal = scene.sources[0].signals[0]
         burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
@@ -194,7 +194,7 @@ class NativePipelineTest(unittest.TestCase):
         self.assertEqual(burst.sample_rate_hz, 1.92e6)
         self.assertEqual(burst.bandwidth_hz, 1.4e6)
         self.assertEqual(burst.protocol, "cellular")
-        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_2600")
+        self.assertEqual(burst.extras["runtimeMode"], "direct")
         self.assertEqual(burst.extras["NDLRB"], 6)
         self.assertEqual(burst.extras["TotSubframes"], 1)
         self.assertEqual(burst.extras["centerFreq_Hz"], 2.655e9)
@@ -207,7 +207,7 @@ class NativePipelineTest(unittest.TestCase):
         self.assertEqual(burst.sample_rate_hz, 15.36e6)
         self.assertEqual(burst.bandwidth_hz, 10.0e6)
         self.assertEqual(burst.protocol, "cellular")
-        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_NDLRB50")
+        self.assertEqual(burst.extras["runtimeMode"], "direct")
         self.assertEqual(burst.extras["NDLRB"], 50)
         self.assertEqual(burst.extras["TotSubframes"], 1)
 
@@ -215,11 +215,11 @@ class NativePipelineTest(unittest.TestCase):
         scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd_75rb.json")
         signal = scene.sources[0].signals[0]
         burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
-        self.assertEqual(len(burst.samples), 30720)
+        self.assertEqual(len(burst.samples), 23040)
         self.assertEqual(burst.sample_rate_hz, 23.04e6)
         self.assertEqual(burst.bandwidth_hz, 15.0e6)
         self.assertEqual(burst.protocol, "cellular")
-        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_NDLRB75")
+        self.assertEqual(burst.extras["runtimeMode"], "direct")
         self.assertEqual(burst.extras["NDLRB"], 75)
         self.assertEqual(burst.extras["TotSubframes"], 1)
 
@@ -231,7 +231,7 @@ class NativePipelineTest(unittest.TestCase):
         self.assertEqual(burst.sample_rate_hz, 30.72e6)
         self.assertEqual(burst.bandwidth_hz, 20.0e6)
         self.assertEqual(burst.protocol, "cellular")
-        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_NDLRB100")
+        self.assertEqual(burst.extras["runtimeMode"], "direct")
         self.assertEqual(burst.extras["NDLRB"], 100)
         self.assertEqual(burst.extras["TotSubframes"], 1)
 
@@ -243,7 +243,7 @@ class NativePipelineTest(unittest.TestCase):
         self.assertEqual(burst.sample_rate_hz, 7.68e6)
         self.assertEqual(burst.bandwidth_hz, 5.0e6)
         self.assertEqual(burst.protocol, "cellular")
-        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_NDLRB25")
+        self.assertEqual(burst.extras["runtimeMode"], "direct")
         self.assertEqual(burst.extras["NDLRB"], 25)
         self.assertEqual(burst.extras["TotSubframes"], 1)
 
@@ -255,7 +255,7 @@ class NativePipelineTest(unittest.TestCase):
         self.assertEqual(burst.sample_rate_hz, 1.92e6)
         self.assertEqual(burst.bandwidth_hz, 1.4e6)
         self.assertEqual(burst.protocol, "cellular")
-        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_16QAM")
+        self.assertEqual(burst.extras["runtimeMode"], "direct")
         self.assertEqual(burst.extras["NDLRB"], 6)
         self.assertEqual(burst.extras["TotSubframes"], 1)
         self.assertEqual(burst.extras["modulation"], "16QAM")
@@ -268,7 +268,7 @@ class NativePipelineTest(unittest.TestCase):
         self.assertEqual(burst.sample_rate_hz, 1.92e6)
         self.assertEqual(burst.bandwidth_hz, 1.4e6)
         self.assertEqual(burst.protocol, "cellular")
-        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_EXTCP")
+        self.assertEqual(burst.extras["runtimeMode"], "direct")
         self.assertEqual(burst.extras["NDLRB"], 6)
         self.assertEqual(burst.extras["TotSubframes"], 1)
         self.assertEqual(burst.extras["CP"], "Extended")
@@ -281,7 +281,7 @@ class NativePipelineTest(unittest.TestCase):
         self.assertEqual(burst.sample_rate_hz, 1.92e6)
         self.assertEqual(burst.bandwidth_hz, 1.4e6)
         self.assertEqual(burst.protocol, "cellular")
-        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_5SF")
+        self.assertEqual(burst.extras["runtimeMode"], "direct")
         self.assertEqual(burst.extras["NDLRB"], 6)
         self.assertEqual(burst.extras["TotSubframes"], 5)
 
@@ -293,7 +293,7 @@ class NativePipelineTest(unittest.TestCase):
         self.assertEqual(burst.sample_rate_hz, 3.84e6)
         self.assertEqual(burst.bandwidth_hz, 3.0e6)
         self.assertEqual(burst.protocol, "cellular")
-        self.assertEqual(burst.extras["instancePreset"], "LTE_DL_FDD_763_NDLRB15")
+        self.assertEqual(burst.extras["runtimeMode"], "direct")
         self.assertEqual(burst.extras["NDLRB"], 15)
         self.assertEqual(burst.extras["TotSubframes"], 1)
 
@@ -307,6 +307,7 @@ class NativePipelineTest(unittest.TestCase):
         self.assertEqual(burst.protocol, "cellular")
         self.assertEqual(burst.modality, "multi_carrier")
         self.assertEqual(burst.extras["family"], "nr5g")
+        self.assertEqual(burst.extras["runtimeMode"], "direct")
         self.assertEqual(burst.extras["subCarrierSpacing_kHz"], 15.0)
         self.assertEqual(burst.extras["numSubframes"], 1)
 
@@ -316,6 +317,7 @@ class NativePipelineTest(unittest.TestCase):
         burst = signal.generate_transmission(scene, np.random.Generator(np.random.MT19937(1234)))
         self.assertEqual(len(burst.samples), 40000)
         self.assertEqual(burst.sample_rate_hz, 40e6)
+        self.assertEqual(burst.extras["runtimeMode"], "direct")
         self.assertEqual(burst.extras["centerFreq_Hz"], 3.3e9)
         expected = np.array(
             [
@@ -345,6 +347,7 @@ class NativePipelineTest(unittest.TestCase):
         self.assertEqual(len(burst.samples), 40000)
         self.assertEqual(burst.sample_rate_hz, 40e6)
         self.assertEqual(burst.bandwidth_hz, 5e6)
+        self.assertEqual(burst.extras["runtimeMode"], "direct")
         self.assertEqual(burst.extras["gridSize"], 15)
         self.assertEqual(burst.extras["centerFreq_Hz"], 2.655e9)
 
@@ -355,6 +358,7 @@ class NativePipelineTest(unittest.TestCase):
         self.assertEqual(len(burst.samples), 40000)
         self.assertEqual(burst.sample_rate_hz, 40e6)
         self.assertEqual(burst.bandwidth_hz, 10e6)
+        self.assertEqual(burst.extras["runtimeMode"], "direct")
         self.assertEqual(burst.extras["gridSize"], 50)
         self.assertEqual(burst.extras["modulation"], "16QAM")
         self.assertEqual(burst.extras["waveformProfile"], "pdsch")

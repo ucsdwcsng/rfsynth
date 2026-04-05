@@ -38,7 +38,7 @@ def mt19937(seed: int) -> np.random.Generator:
     return np.random.Generator(np.random.MT19937(seed))
 
 
-def generate_test_vector(config: str | Path | dict[str, Any], out_path: str | Path, seed: int = 1234) -> Path:
+def generate_test_vector(config: str | Path | dict[str, Any], out_path: str | Path, seed: int = 1234) -> Path | None:
     scene, signal_spec = load_single_signal(config)
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -109,7 +109,7 @@ def generate_test_vector(config: str | Path | dict[str, Any], out_path: str | Pa
         message = signal_spec.args.get("message")
         if message is None:
             message_path = signal_spec.args.get("messagePath")
-            if message_path:
+            if message_path and Path(message_path).exists():
                 raw = json.loads(Path(message_path).read_text())
                 if "message_bits" in raw:
                     message = raw["message_bits"]
@@ -120,6 +120,23 @@ def generate_test_vector(config: str | Path | dict[str, Any], out_path: str | Pa
             message = rng.integers(0, 2, size=672).tolist()
         payload = {
             "message_bits": np.asarray(message, dtype=np.int64).tolist(),
+        }
+    elif signal_type == "nr5g":
+        waveform_profile = str(signal_spec.args.get("waveformProfile", "control"))
+        if waveform_profile == "pdsch":
+            message_bits = signal_spec.args.get("messageBits")
+            if message_bits is None:
+                grid_size = int(signal_spec.args.get("gridSize", 50))
+                num_subframes = int(signal_spec.args.get("numSubframes", 1))
+                # Sufficient for the narrow direct NR matrix, not a generic NR payload model.
+                size = max(512, grid_size * 12 * 14 * num_subframes * 4)
+                message_bits = rng.integers(0, 2, size=size).tolist()
+        else:
+            message_bits = signal_spec.args.get("messageBits")
+            if message_bits is None:
+                message_bits = rng.integers(0, 2, size=20).tolist()
+        payload = {
+            "message_bits": np.asarray(message_bits, dtype=np.int64).tolist(),
         }
     elif signal_type == "Ds3":
         symbol_rate = float(signal_spec.args["bandwidth_Hz"]) / (2.0 * float(signal_spec.args.get("chipsPerSymbol", 1024)))
@@ -148,6 +165,9 @@ def generate_test_vector(config: str | Path | dict[str, Any], out_path: str | Pa
             "samples_real": np.real(samples).tolist(),
             "samples_imag": np.imag(samples).tolist(),
         }
+
+    if not payload:
+        return None
 
     output = {
         "format": "rfsynth.atomic_test_vector.v1",

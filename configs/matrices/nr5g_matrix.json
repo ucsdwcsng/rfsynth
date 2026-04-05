@@ -1,0 +1,62 @@
+{
+  "name": "nr5g_matrix",
+  "defaults": {
+    "tot_time": 0.02,
+    "rxSampleRate_Hz": 122880000.0,
+    "txPower_db": -68,
+    "trafficType": {
+      "type": "periodic",
+      "transmissionPerSec": 1
+    },
+    "subCarrierSpacing_kHz": 15,
+    "cyclicPrefix": "Normal",
+    "transmissionRate_Hz": 40000000.0
+  },
+  "profiles": [
+    {
+      "profileSlug": "nr5g_3800mhz_control_qpsk",
+      "configPrefix": "nr5g_3800mhz_control",
+      "centerFreq_Hz": 3800000000.0,
+      "gridSize": 50,
+      "waveformProfile": "control",
+      "modulation": "QPSK",
+      "bandwidth_Hz": 10000000.0
+    },
+    {
+      "profileSlug": "nr5g_3300mhz_control_qpsk",
+      "configPrefix": "nr5g_3300mhz_control",
+      "centerFreq_Hz": 3300000000.0,
+      "gridSize": 50,
+      "waveformProfile": "control",
+      "modulation": "QPSK",
+      "bandwidth_Hz": 10000000.0
+    },
+    {
+      "profileSlug": "nr5g_2655mhz_fr1_control_qpsk",
+      "configPrefix": "nr5g_2655mhz_fr1_control",
+      "centerFreq_Hz": 2655000000.0,
+      "gridSize": 15,
+      "waveformProfile": "control",
+      "modulation": "QPSK",
+      "bandwidth_Hz": 5000000.0
+    },
+    {
+      "profileSlug": "nr5g_3800mhz_pdsch_16qam",
+      "configPrefix": "nr5g_3800mhz_pdsch",
+      "centerFreq_Hz": 3800000000.0,
+      "gridSize": 50,
+      "waveformProfile": "pdsch",
+      "modulation": "16QAM",
+      "bandwidth_Hz": 10000000.0
+    }
+  ],
+  "axes": {
+    "numSubframes": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  }
+}

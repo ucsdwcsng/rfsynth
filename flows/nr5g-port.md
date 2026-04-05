@@ -1,26 +1,77 @@
 # NR5G Port Flow
 
-Use this flow to add `nr5g` to the Python-native `rfsynth` path without trying to solve all 5G variants at once.
+Use this flow to add and finish `nr5g` in the Python-native `rfsynth` path without confusing oracle templates with production completion.
 
 ## Target
 
 Reference source:
 - `/Users/dineshb/repos/signal-processing/rfsynth-python/modules/SignalGenerator/lib/+atomic/nr5g.m`
 
-Recommended first supported subset:
-- one instance preset such as `nr5g77` or `FR1`
+## Definition of done
+
+For NR, "finished" means the production runtime synthesizes the waveform from parameters and logic.
+
+These do not count as final completion:
+- production loading of exported MATLAB waveform templates
+- production loading of exported MATLAB grids
+- production use of stored MATLAB waveform samples
+
+Those are allowed only in compare, debug, or test harnesses.
+
+## Phase 1
+
+Direct narrow slice only:
+- one `gridSize`
 - one `subCarrierSpacing`
-- one `NDLRB`
 - `CP = Normal`
-- one `TotSubframes`
+- one `numSubframes`
 - one `modulation`
 - one `waveformProfile`
+- one public config, for example a narrow `control` profile at one center frequency
 
-The point is to close one narrow NR waveform first, not all bands and numerologies.
+Acceptance:
+- one direct runtime slice renders
+- unsupported combinations fail clearly
+- compare artifacts exist
+- no production template dependence
 
-Current working pattern in this repo:
-- direct Python reconstruction for simple narrow control-style presets
-- oracle-backed grid templates for exact narrow presets
+## Phase 2
+
+Direct matrix expansion:
+- widen one knob at a time from the Phase 1 slice
+- add matrix tooling only after a direct slice exists
+- likely widening order:
+  1. second center-frequency variant
+  2. FR1 slice
+  3. `PDSCH 16QAM`
+  4. wider `numSubframes`
+  5. further grid size or numerology work
+
+Acceptance:
+- widened runtime remains direct
+- matrix tooling and matrix tests are green
+- matrix compare coverage exists
+
+## Phase 3
+
+Finish NR:
+- complete the intended NR parameter surface
+- remove any remaining template-backed runtime behavior
+- keep oracle templates only in compare/debug/tests
+
+Acceptance:
+- production runtime is fully parameter-driven for the declared NR surface
+- compare coverage is sufficient for the widened surface
+- regression suite remains green
+
+## Current status rule
+
+If any supported NR slice still depends on checked-in templates in the production runtime, NR is not finished.
+
+Current repo status:
+- the supported NR matrix surface is already direct in production runtime
+- matrix tests enforce direct rendering across the generated NR matrix
+- stored NR waveform/template assets remain compare/debug artifacts only
 
 ## Flow
 
@@ -30,64 +81,37 @@ Agent:
 - `agents/atomic-porter.md`
 
 Tasks:
-- create `rfsynth/native/atomic/nr5g.py`
+- create or update `rfsynth/native/atomic/nr5g.py`
 - register it
 - add `configs/synthetic_atomic/nr5g.json`
-- add one basic render test
-- if exact parity is needed quickly, export one narrow MATLAB template instead of approximating the full PHY
-
-Good first target:
-- one FR1-style preset
-- fixed grid size
-- fixed subcarrier spacing
-- QPSK first
-
-Acceptance:
-- the Python-native engine renders a non-empty burst and emits metadata
+- add at least one basic render test
+- prefer direct Python reconstruction of resource grid, OFDM, CP, and resample stages
+- keep templates out of the production renderer
 
 ### 2. Oracle compare
 
 Agent:
 - `agents/oracle-compare.md`
 
-First compare mode:
-- `scene-behavioral`
-
-Move to stricter compare only after the narrow preset is stable.
-
-For NR, expect exact parity to require more explicit control over:
-- payload bits
-- grid mapping
-- reference signals
-- symbol scheduling
-- waveform profile selection
-
-Preferred exact-parity shortcut:
-- export one narrow template with `matlab/lib/utils/exportNr5gTemplate.m`
-- load that template in Python as one oracle-backed profile
+Preferred compare path:
+- `scene-behavioral` first for a direct slice
+- then raw compare where exactness is realistic
+- for wider coverage, use the NR matrix compare tooling
 
 ### 3. Parity debug
 
 Agent:
 - `agents/parity-debug.md`
 
-Likely mismatch classes for NR:
+Likely mismatch classes:
 - numerology assumptions
 - grid size and occupied bandwidth
 - CP handling
 - reference-signal placement
 - symbol timing and burst boundaries
 - normalization
-- waveform profile mismatch such as `control` vs `pdsch`
-
-Acceptance:
-- one preset reaches acceptable parity
-
-Current proved sequence:
-1. narrow control-style preset
-2. second center-frequency variant
-3. FR1 oracle-backed preset
-4. `PDSCH 16QAM` oracle-backed preset
+- waveform profile mismatch
+- hidden template dependence
 
 ### 4. Regression
 
@@ -96,40 +120,26 @@ Agent:
 
 Tasks:
 - rerun public checks after the NR atomic is integrated
-
-Acceptance:
-- no regressions in current public scenes
+- run matrix tests when NR matrix tooling changed
 
 ## Final milestone
 
-Call the first NR milestone complete when all of these are true:
+Call NR finished only when all of these are true:
 
-- one narrow `nr5g` preset renders in Python
-- one public config exists
-- MATLAB compare artifacts exist
-- regression suite remains green
+- Phase 1 is complete
+- Phase 2 is complete
+- Phase 3 is complete
+- the default runtime does not depend on checked-in oracle template assets
 
-## Current Extension Knobs
+## Suggested Controller Prompt
 
-When you modify this flow for the next NR step, pick only one of:
+Use this flow with:
 
-- new `waveformProfile`
-- new `modulation`
-- new `gridSize`
-- new center-frequency preset
-- new numerology
+- `agents/atomic-porter.md`
+- `agents/oracle-compare.md`
+- `agents/parity-debug.md`
+- `agents/regression.md`
 
-Do not widen more than one of those in the same first pass.
+Suggested instruction:
 
-## How To Modify This Flow
-
-Edit this flow when NR support widens.
-
-Common next edits:
-- change the first target preset
-- add a new `waveformProfile`
-- tighten the compare mode from `scene-behavioral` to `near-exact` or `atomic-exact`
-- add a second milestone after the first preset is green, for example:
-  - `FR1`
-  - `PDSCH 16QAM`
-  - a second numerology
+`Advance NR toward Phase 3. Keep the production runtime direct and parameter-driven. Oracle templates or vectors may be used only in compare, debug, or tests. Use atomic-porter -> oracle-compare -> parity-debug -> regression, and do not mark NR finished until all three phases are satisfied.`

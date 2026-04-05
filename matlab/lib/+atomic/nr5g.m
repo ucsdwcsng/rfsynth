@@ -9,6 +9,7 @@ classdef nr5g < atomic.Signal
         modulation string = "QPSK"
         waveformProfile string = "control"
         channelBandwidth_MHz (1,1) double = 10
+        testVectorPath string = ""
     end
 
     methods
@@ -23,6 +24,7 @@ classdef nr5g < atomic.Signal
                 'cyclicPrefix', "Normal", ...
                 'modulation', "QPSK", ...
                 'waveformProfile', "control", ...
+                'testVectorPath', "", ...
                 'bandwidth_Hz', 10e6, ...
                 'transmissionRate_Hz', 40e6);
 
@@ -44,6 +46,7 @@ classdef nr5g < atomic.Signal
             this.modulation = string(opts.modulation);
             this.waveformProfile = string(opts.waveformProfile);
             this.channelBandwidth_MHz = opts.bandwidth_Hz / 1e6;
+            this.testVectorPath = string(opts.testVectorPath);
         end
 
         function dataIQ = generateTransmission(this)
@@ -55,7 +58,8 @@ classdef nr5g < atomic.Signal
                 this.numSubframes, ...
                 char(this.cyclicPrefix), ...
                 char(this.modulation), ...
-                char(this.waveformProfile));
+                char(this.waveformProfile), ...
+                char(this.testVectorPath));
         end
     end
 end

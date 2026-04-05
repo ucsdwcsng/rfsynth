@@ -30,7 +30,7 @@ Treat the branch as regression-green only if all of these are true:
 - Config validation:
   - `scripts/check_configs.py` passes for every checked config
 - Unit tests:
-  - `python -m unittest tests.test_native_pipeline` exits `0`
+  - `/Users/dineshb/repos/signal-processing/rfsynth-python/.venv/bin/python -m unittest tests.test_native_pipeline tests.test_lte_matrix tests.test_nr5g_matrix` exits `0`
 - Public synthetic suite:
   - every public config is rendered
   - every public config finishes verification
@@ -39,6 +39,9 @@ Treat the branch as regression-green only if all of these are true:
 - New target coverage:
   - the newly added protocol config is included in the public sweep
   - the newly added protocol config is `Visual pass`
+- Protocol matrix coverage:
+  - if LTE matrix tooling changed, `tests.test_lte_matrix` passes
+  - if NR matrix tooling changed, `tests.test_nr5g_matrix` passes
 
 ## Working rules
 
@@ -51,7 +54,7 @@ Treat the branch as regression-green only if all of these are true:
 ## Preferred tools
 
 - `scripts/check_configs.py`
-- `python3 -m unittest tests.test_native_pipeline`
+- `/Users/dineshb/repos/signal-processing/rfsynth-python/.venv/bin/python -m unittest tests.test_native_pipeline tests.test_lte_matrix tests.test_nr5g_matrix`
 - `scripts/run_python_native_suite.py`
 
 ## Stop conditions

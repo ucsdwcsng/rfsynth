@@ -40,8 +40,7 @@ def main() -> int:
     out_root.mkdir(parents=True, exist_ok=True)
 
     scene, signal_spec = load_single_signal(config_path)
-    vector_path = out_root / f"{config_path.stem}_test_vector.json"
-    generate_test_vector(config_path, vector_path, seed=args.seed)
+    vector_path = generate_test_vector(config_path, out_root / f"{config_path.stem}_test_vector.json", seed=args.seed)
 
     compare_cfg = build_compare_config(config_path, out_root, vector_path, args.seed)
     python_burst = generate_python_atomic_burst(compare_cfg, seed=args.seed)
@@ -93,6 +92,8 @@ def build_compare_config(config_path: Path, out_root: Path, vector_path: Path | 
 
         if signal_type == "LTE_DL_FDD":
             signal_args["messagePath"] = str(vector_path)
+        elif signal_type == "nr5g":
+            signal_args["testVectorPath"] = str(vector_path)
         else:
             signal_args["testVectorPath"] = str(vector_path)
 

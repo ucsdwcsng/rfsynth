@@ -12,9 +12,9 @@ from rfsynth import render_synthetic
 REPO_ROOT = Path("/Users/dineshb/repos/signal-processing/rfsynth")
 
 
-class LteMatrixToolingTest(unittest.TestCase):
-    def test_lte_matrix_expansion_counts(self) -> None:
-        script = REPO_ROOT / "scripts" / "generate_lte_dl_fdd_matrix.py"
+class Nr5gMatrixToolingTest(unittest.TestCase):
+    def test_nr5g_matrix_expansion_counts(self) -> None:
+        script = REPO_ROOT / "scripts" / "generate_nr5g_matrix.py"
         with tempfile.TemporaryDirectory() as tmp:
             proc = subprocess.run(
                 ["python3", str(script), "--out", tmp],
@@ -23,18 +23,21 @@ class LteMatrixToolingTest(unittest.TestCase):
                 text=True,
             )
             summary = json.loads(proc.stdout)
-            self.assertEqual(summary["profile_count"], 48)
-            self.assertEqual(summary["config_count"], 96)
-            self.assertEqual(summary["runtime_manifest_path"], summary["manifest_path"])
+            self.assertEqual(summary["profile_count"], 4)
+            self.assertEqual(summary["config_count"], 20)
 
             manifest = json.loads(Path(summary["manifest_path"]).read_text())
-            self.assertEqual(len(manifest["profiles"]), 48)
-            self.assertIn("profile_dir", manifest)
+            self.assertEqual(len(manifest["profiles"]), 4)
+            self.assertEqual(len(manifest["configs"]), 20)
             config_dir = Path(summary["config_dir"])
-            self.assertEqual(len(list(config_dir.glob("*.json"))), 96)
+            configs = sorted(path.name for path in config_dir.glob("*.json"))
+            self.assertEqual(len(configs), 20)
+            self.assertIn("nr5g_3800mhz_control_1sf_qpsk.json", configs)
+            self.assertIn("nr5g_3800mhz_pdsch_5sf_16qam.json", configs)
+            self.assertIn("nr5g_2655mhz_fr1_control_3sf_qpsk.json", configs)
 
-    def test_lte_matrix_configs_render_direct(self) -> None:
-        script = REPO_ROOT / "scripts" / "generate_lte_dl_fdd_matrix.py"
+    def test_nr5g_matrix_configs_render_direct(self) -> None:
+        script = REPO_ROOT / "scripts" / "generate_nr5g_matrix.py"
         with tempfile.TemporaryDirectory() as tmp:
             proc = subprocess.run(
                 ["python3", str(script), "--out", tmp],

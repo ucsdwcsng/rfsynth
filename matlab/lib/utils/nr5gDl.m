@@ -1,10 +1,20 @@
-function [nr_dl_waveform, info] = nr5gDl(grid_size, sub_car_sp, fc, nr_bw, n_sf, CP, pdsch_mod, waveform_profile)
+function [nr_dl_waveform, info] = nr5gDl(grid_size, sub_car_sp, fc, nr_bw, n_sf, CP, pdsch_mod, waveform_profile, test_vector_path)
 %NR5GDL Create a narrow NR downlink waveform for local oracle comparison.
 
     if nargin < 8 || isempty(waveform_profile)
         waveform_profile = 'control';
     end
+    if nargin < 9
+        test_vector_path = '';
+    end
     use_pdsch = strcmpi(waveform_profile, 'pdsch');
+    payload_bits = [];
+    if strlength(string(test_vector_path)) > 0
+        raw = jsondecode(fileread(char(test_vector_path)));
+        if isfield(raw, 'payload') && isfield(raw.payload, 'message_bits')
+            payload_bits = logical(raw.payload.message_bits(:));
+        end
+    end
 
     carrier = nrSCSCarrierConfig( ...
         'SubcarrierSpacing', sub_car_sp, ...
@@ -49,12 +59,18 @@ function [nr_dl_waveform, info] = nr5gDl(grid_size, sub_car_sp, fc, nr_bw, n_sf,
         'AggregationLevel', 2^floor(log2(max(1, n_coreset_cces))), ...
         'DataBlockSize', 20, ...
         'DataSource', 'PN9')};
+    if ~isempty(payload_bits) && ~use_pdsch
+        pdcch{1}.DataSource = double(payload_bits(:)).';
+    end
 
     pdsch = {nrWavegenPDSCHConfig};
     pdsch{1}.Enable = use_pdsch;
     pdsch{1}.Modulation = pdsch_mod;
     if use_pdsch
         pdsch{1}.PRBSet = 0:(grid_size - 1);
+        if ~isempty(payload_bits)
+            pdsch{1}.DataSource = double(payload_bits(:)).';
+        end
     end
 
     nr_dl_cfg = nrDLCarrierConfig( ...

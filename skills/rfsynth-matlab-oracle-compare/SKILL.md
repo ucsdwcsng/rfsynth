@@ -1,6 +1,6 @@
 ---
 name: rfsynth-matlab-oracle-compare
-description: Compare Python-native rfsynth outputs against the MATLAB oracle, either as full-scene behavioral comparisons or shared-vector exact atomic comparisons, and save metrics plus residual plots.
+description: Compare Python-native rfsynth outputs against the MATLAB oracle as either full-scene behavioral checks or exact raw-burst checks, while keeping oracle fixtures out of the production runtime.
 ---
 
 # rfsynth MATLAB Oracle Compare
@@ -9,14 +9,9 @@ Use this skill when the task is to compare the Python-native path in `/Users/din
 
 ## Compare modes
 
-Use the right compare mode first.
-
-- Scene behavioral compare:
-  - compare metadata, verification verdicts, aligned IQ summary metrics, and residual plots
-  - best for public scene configs and protocol-heavy waveforms
-- Atomic exact compare:
-  - compare raw bursts driven by explicit shared vectors
-  - best for atomics where exact IQ parity is realistic
+- Scene behavioral compare
+- Atomic exact compare
+- Near-exact compare when explicitly allowed
 
 ## Main entrypoints
 
@@ -26,6 +21,10 @@ Use the right compare mode first.
   - `scripts/compare_atomic_folder.py`
 - One exact atomic with shared vectors:
   - `scripts/compare_atomic_iq.py`
+- LTE raw matrix compare:
+  - `scripts/compare_lte_matrix_raw.py`
+- NR raw matrix compare:
+  - `scripts/compare_nr5g_matrix_raw.py`
 
 ## Default workflow
 
@@ -33,66 +32,40 @@ Use the right compare mode first.
 2. Use a fixed seed, but do not rely on seed alone for exact parity.
 3. For exact parity, generate and use explicit shared vectors.
 4. Run MATLAB through the repo helpers, not ad hoc shell snippets.
-5. Save outputs to `/tmp` and inspect:
-   - `compare.json`
-   - `*_compare_time.png`
-   - `*_compare_psd.png`
-   - `*_compare_spectrogram.png`
-6. Read both the IQ metrics and the verification results before concluding anything.
-
-## Current compare behavior
-
-The compare helpers already do this by default:
-
-- drop the first `100` samples
-- estimate lag by cross-correlation
-- align before computing residual metrics
-- plot Python, MATLAB, and residual views
-
-The time compare plots show:
-- Python real vs MATLAB real
-- Python imag vs MATLAB imag
-- real residual
-- imag residual
-
-The spectrogram compare plots show:
-- Python
-- MATLAB
-- residual
+5. Save outputs to `/tmp`.
+6. Read both IQ metrics and verification results before concluding anything.
+7. State whether the runtime under test is parameter-driven or fixture-backed.
 
 ## Guardrails
 
 - Do not call a full-scene match “exact parity” unless the compare path is shared-vector driven and the metrics justify it.
 - Wideband noise and intentionally silent signals are special cases.
 - For Bluetooth, WLAN, LTE, or 5G, exact parity usually requires explicit payload/control vectors and protocol-specific framing logic.
+- Exported templates or vectors are valid compare fixtures, not proof that a fixture-backed production renderer is acceptable.
+- If the runtime under test is fixture-backed, say so explicitly even when the compare metrics are green.
 
 ## Useful commands
 
-Single scene behavioral compare:
+Use the project venv when Python dependencies matter:
 
 ```bash
-python3 scripts/compare_python_to_matlab.py \
-  configs/synthetic_atomic/am.json \
-  --python-out /tmp/rfsynth_python_oracle \
-  --matlab-out /tmp/rfsynth_matlab_oracle
+/Users/dineshb/repos/signal-processing/rfsynth-python/.venv/bin/python \
+  scripts/compare_python_to_matlab.py configs/synthetic_atomic/am.json
 ```
 
-Whole-folder behavioral compare:
-
 ```bash
-python3 scripts/compare_atomic_folder.py \
-  configs/synthetic_atomic \
-  --python-out /tmp/rfsynth_python_atomic_folder \
-  --matlab-out /tmp/rfsynth_matlab_atomic_folder \
-  --report-out /tmp/rfsynth_atomic_folder_compare
+/Users/dineshb/repos/signal-processing/rfsynth-python/.venv/bin/python \
+  scripts/compare_atomic_iq.py configs/synthetic_atomic/qam.json
 ```
 
-Single-atomic exact compare:
+```bash
+/Users/dineshb/repos/signal-processing/rfsynth-python/.venv/bin/python \
+  scripts/compare_lte_matrix_raw.py /tmp/rfsynth_lte_dl_fdd_matrix/configs
+```
 
 ```bash
-python3 scripts/compare_atomic_iq.py \
-  configs/synthetic_atomic/qam.json \
-  --out /tmp/rfsynth_atomic_compare
+/Users/dineshb/repos/signal-processing/rfsynth-python/.venv/bin/python \
+  scripts/compare_nr5g_matrix_raw.py /tmp/rfsynth_nr5g_matrix/configs
 ```
 
 ## Expected outputs
@@ -101,13 +74,15 @@ python3 scripts/compare_atomic_iq.py \
 - saved MATLAB artifacts
 - compare metrics
 - residual plots
+- whether the runtime under test is parameter-driven or fixture-backed
 - one verdict: exact, allclose, behavioral-only, or still divergent
 
 ## Answer format
 
 Return:
 - compare mode used
-- config or folder compared
+- config, folder, or matrix compared
 - key metrics
-- where the plots and `compare.json` were written
+- where the plots and summary files were written
+- whether the runtime under test is parameter-driven or fixture-backed
 - whether the result is exact parity, near-exact, behavioral parity, or unresolved

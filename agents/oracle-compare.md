@@ -13,16 +13,22 @@ Run the correct compare loop for one target and produce artifacts that make the 
 
 ## Inputs
 
-- one config path or one atomic target
+- one config path, config folder, or one atomic target
 - compare mode:
   - `scene-behavioral`
   - `atomic-exact`
+  - `near-exact`
+- phase target:
+  - `Phase 1`
+  - `Phase 2`
+  - `Phase 3`
 
 ## Required output
 
 - generated compare artifacts in `/tmp`
-- `compare.json`
+- `compare.json` or `summary.json`
 - concise interpretation of the result
+- a note on whether the runtime under test is parameter-driven or fixture-backed
 
 ## Acceptance metrics
 
@@ -32,7 +38,7 @@ Choose the correct target before running the compare.
 
 Treat the compare as passing only if all of these are true:
 
-- `compare_python_to_matlab.py` returns `ok = true`
+- `compare_python_to_matlab.py` or the folder summary returns `ok = true` or matching behavioral success
 - `python_verify.verdict == matlab_verify.verdict`
 - signal box counts match
 - energy box counts match
@@ -47,11 +53,28 @@ Treat the compare as passing only if one of these is true:
 
 ### `near-exact`
 
-Only use this target when the controller explicitly allows it. Treat it as passing only if:
+Treat it as passing only if:
 
 - `cross_correlation_peak_magnitude >= 0.995`
 - `correlation_magnitude >= 0.995`
 - `gain_aligned_relative_rmse <= 1e-2`
+
+## Phase rules
+
+### `Phase 1`
+
+- exact compare is preferred when realistic
+- any fixture use must remain outside the production runtime
+
+### `Phase 2`
+
+- folder or matrix compares are expected
+- oracle assets may be used for compare coverage, not to justify fixture-backed production code
+
+### `Phase 3`
+
+- a green compare is not sufficient if the runtime remains fixture-backed
+- mark it incomplete until the production path is direct
 
 ## Working rules
 
@@ -62,12 +85,16 @@ Only use this target when the controller explicitly allows it. Treat it as passi
    - align by cross-correlation
 4. Read both IQ metrics and metadata/verification results before concluding success or failure.
 5. Do not label a full-scene compare as exact parity unless the data actually supports it.
+6. If the runtime under test relies on checked-in oracle waveform, grid, or payload fixtures, say so explicitly.
+7. A green compare does not by itself prove a phase is complete if the runtime is fixture-backed.
 
 ## Preferred tools
 
 - `scripts/compare_python_to_matlab.py`
 - `scripts/compare_atomic_iq.py`
 - `scripts/compare_atomic_folder.py`
+- `scripts/compare_lte_matrix_raw.py`
+- `scripts/compare_nr5g_matrix_raw.py`
 
 ## Stop conditions
 
@@ -83,8 +110,10 @@ If the chosen acceptance metrics are not met, do not soften the verdict. Mark it
 
 Return:
 - compare mode used
+- phase target
 - artifact directory
 - key metrics
+- whether the runtime under test is parameter-driven or fixture-backed
 - one of:
   - exact
   - near-exact
@@ -98,5 +127,6 @@ Edit this file when compare policy changes.
 
 Most useful knobs:
 - add or tighten thresholds in `Acceptance metrics`
+- change phase rules
 - change the default compare mode for a protocol family
-- add required artifact outputs when new compare plots or reports are introduced
+- add required artifact outputs when new compare plots, reports, or matrix summaries are introduced
