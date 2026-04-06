@@ -1,3 +1,15 @@
+"""Python-native WLAN Non-HT 802.11g atomic implementation.
+
+Call path:
+
+`scene.build_signal(...) -> create_signal("WlanNonHT80211g")`
+`-> WlanNonHT80211gSignal.generate_transmission(scene, rng)`
+`-> wlan_nonht_burst(args, rng)`.
+
+This module owns the protocol-specific preamble, SIGNAL field, scrambling,
+coding, interleaving, mapping, and OFDM symbol assembly for the runtime path.
+"""
+
 from __future__ import annotations
 
 import math
@@ -286,6 +298,8 @@ def _build_data_field(psdu_bits: np.ndarray, scrambler_initialization: int, mcs:
 
 
 def wlan_nonht_burst(args: dict[str, Any], rng: np.random.Generator, *, apply_power: bool = True) -> GeneratedBurst:
+    """Build one WLAN Non-HT burst at the native 20 MHz waveform rate."""
+
     mcs = _resolve_mcs(args)
     psdu_bits, scrambler_initialization = _resolve_psdu_bits(args, rng)
     length_bytes = psdu_bits.size // 8
@@ -322,6 +336,8 @@ def wlan_nonht_burst(args: dict[str, Any], rng: np.random.Generator, *, apply_po
 
 
 class WlanNonHT80211gSignal(Signal):
+    """Runtime wrapper that dispatches to `wlan_nonht_burst(...)`."""
+
     def generate_transmission(self, scene: Scene, rng):
         del scene
         return wlan_nonht_burst(self.args, rng)

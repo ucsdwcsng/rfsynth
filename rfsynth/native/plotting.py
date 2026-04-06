@@ -1,3 +1,5 @@
+"""Plotting and visual verification for rendered Python-native artifacts."""
+
 from __future__ import annotations
 
 import json
@@ -23,6 +25,8 @@ from rfsynth.native.models import ArtifactBundle, PlotBundle
 
 @dataclass
 class Box:
+    """Time-frequency rectangle extracted from metadata for plotting."""
+
     time_start: float
     time_stop: float
     freq_lo: float
@@ -32,6 +36,8 @@ class Box:
 
 
 def plot_artifacts(bundle_or_base: ArtifactBundle | str | Path) -> PlotBundle:
+    """Generate the standard PNG plot bundle for one rendered scene."""
+
     bundle = resolve_bundle(bundle_or_base)
     with bundle.metadata_path.open() as f:
         metadata = json.load(f)
@@ -79,6 +85,8 @@ def plot_artifacts(bundle_or_base: ArtifactBundle | str | Path) -> PlotBundle:
 
 
 def verify_artifacts(bundle_or_base: ArtifactBundle | str | Path) -> dict[str, Any]:
+    """Run visual-alignment checks and write `<base>_verify.json`."""
+
     bundle = resolve_bundle(bundle_or_base)
     with bundle.metadata_path.open() as f:
         metadata = json.load(f)
@@ -103,6 +111,8 @@ def verify_artifacts(bundle_or_base: ArtifactBundle | str | Path) -> dict[str, A
 
 
 def resolve_bundle(bundle_or_base: ArtifactBundle | str | Path) -> ArtifactBundle:
+    """Accept either a full bundle or a base path and normalize to a bundle."""
+
     if isinstance(bundle_or_base, ArtifactBundle):
         return bundle_or_base
     base = Path(bundle_or_base)
@@ -120,6 +130,8 @@ def resolve_bundle(bundle_or_base: ArtifactBundle | str | Path) -> ArtifactBundl
 
 
 def read_cf32(path: Path) -> np.ndarray:
+    """Read interleaved float32 IQIQ... data into a complex vector."""
+
     raw = np.fromfile(path, dtype=np.float32)
     if raw.size % 2 != 0:
         raise ValueError(f"{path} does not contain an even number of float32 values")
@@ -127,6 +139,8 @@ def read_cf32(path: Path) -> np.ndarray:
 
 
 def extract_boxes(metadata: dict) -> tuple[list[Box], list[Box]]:
+    """Extract signal and transmission boxes from metadata JSON."""
+
     signal_boxes: list[Box] = []
     energy_boxes: list[Box] = []
 
@@ -169,6 +183,8 @@ def extract_boxes(metadata: dict) -> tuple[list[Box], list[Box]]:
 
 
 def compute_spectrogram(iq: np.ndarray, fs: float, fc: float, nfft: int = 4096, hop: int = 1024) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Compute the spectrogram grid used by plot and verify flows."""
+
     if len(iq) < nfft:
         padded = np.zeros(nfft, dtype=np.complex64)
         padded[: len(iq)] = iq

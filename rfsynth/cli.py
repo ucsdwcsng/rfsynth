@@ -1,3 +1,5 @@
+"""Command-line entrypoint for the Python-native synthetic workflow."""
+
 from __future__ import annotations
 
 import argparse
@@ -9,6 +11,8 @@ from rfsynth.native.scene import validate_scene
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Dispatch CLI subcommands into the shared library entrypoints."""
+
     parser = argparse.ArgumentParser(prog="rfsynth")
     sub = parser.add_subparsers(dest="command", required=True)
 

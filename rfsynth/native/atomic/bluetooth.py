@@ -1,3 +1,15 @@
+"""Python-native Bluetooth LE atomic implementation.
+
+Call path:
+
+`scene.build_signal(...) -> create_signal("Bluetooth")`
+`-> BluetoothSignal.generate_transmission(scene, rng)`
+`-> bluetooth_burst(args, rng)`.
+
+This module contains the protocol-specific framing, whitening, coding, and
+GMSK modulation logic for the runtime path.
+"""
+
 from __future__ import annotations
 
 import math
@@ -224,6 +236,8 @@ def _default_bandwidth_hz(mode: str) -> float:
 
 
 def bluetooth_burst(args: dict[str, Any], rng: np.random.Generator, *, apply_power: bool = True) -> GeneratedBurst:
+    """Build one Bluetooth LE burst at the atomic's native sample rate."""
+
     mode = str(args.get("mode", "LE1M"))
     channel_index = int(args.get("channelIndex", 37))
     samples_per_symbol = int(args.get("samplesPerSymbol", 8))
@@ -290,6 +304,8 @@ def bluetooth_burst(args: dict[str, Any], rng: np.random.Generator, *, apply_pow
 
 
 class BluetoothSignal(Signal):
+    """Runtime wrapper that dispatches to `bluetooth_burst(...)`."""
+
     def generate_transmission(self, scene: Scene, rng):
         del scene
         return bluetooth_burst(self.args, rng)

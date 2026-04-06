@@ -1,3 +1,5 @@
+"""Wideband noise atomic wrapper."""
+
 from __future__ import annotations
 
 from rfsynth.native.atomic.common import noise_burst
@@ -5,6 +7,8 @@ from rfsynth.native.core import Scene, Signal
 
 
 class WidebandThermalWgnSignal(Signal):
+    """Dispatch `generate_transmission(...)` to `common.noise_burst(...)`."""
+
     def generate_transmission(self, scene: Scene, rng):
         return noise_burst(
             self.args,

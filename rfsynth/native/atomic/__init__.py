@@ -1,3 +1,10 @@
+"""Registry-backed factory for Python-native atomic signal classes.
+
+Scene loading never imports atomics dynamically by filename. Instead,
+`build_signal(...)` calls `create_signal(...)`, which does a direct lookup in
+`REGISTRY` and instantiates the corresponding `Signal` subclass.
+"""
+
 from __future__ import annotations
 
 from rfsynth.native.core import Signal, Traffic
@@ -52,6 +59,8 @@ REGISTRY: dict[str, type[Signal]] = {
 
 
 def create_signal(type_name: str, args: dict, traffic: Traffic | None = None) -> Signal:
+    """Instantiate one atomic signal from the explicit registry entry."""
+
     try:
         cls = REGISTRY[type_name]
     except KeyError as exc:

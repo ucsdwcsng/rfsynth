@@ -1,3 +1,5 @@
+"""FSK atomic wrapper over the shared FSK-family builder."""
+
 from __future__ import annotations
 
 from rfsynth.native.atomic.common import fsk_like_burst
@@ -5,6 +7,8 @@ from rfsynth.native.core import Scene, Signal
 
 
 class FskSignal(Signal):
+    """Dispatch `generate_transmission(...)` to `common.fsk_like_burst(...)`."""
+
     def generate_transmission(self, scene: Scene, rng):
         del scene
         mod_order = int(self.args.get("modOrder", 2))

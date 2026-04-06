@@ -1,3 +1,10 @@
+"""Frozen NR control-template constants used by `nr5g.py`.
+
+These values are not the main execution path by themselves. `nr5g.py` imports
+them to rebuild the narrow supported NR control waveform without calling into
+MATLAB at runtime.
+"""
+
 from __future__ import annotations
 
 import numpy as np

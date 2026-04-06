@@ -10,6 +10,7 @@ The fastest way to navigate the repo is:
 
 - [README.md](./README.md): quick-start, user flows, and current entrypoints
 - [ARCHITECTURE.md](./ARCHITECTURE.md): detailed end-to-end flow and component responsibilities
+- [PYTHON_NATIVE_RUNTIME.md](./PYTHON_NATIVE_RUNTIME.md): exact Python-native call order, registry dispatch, and non-LTE atomic execution map
 - [CONFIG_FORMAT.md](./CONFIG_FORMAT.md): YAML and JSON config shapes
 - [matlab/README.md](./matlab/README.md): MATLAB-specific setup and entrypoints
 
@@ -73,28 +74,26 @@ In practical terms:
 This is the new JSON-first synthetic path implemented in Python.
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["Short JSON scene"] --> B["python -m rfsynth.cli check"]
     A --> C["python -m rfsynth.cli generate"]
     C --> D["load_scene()"]
-    D --> E["normalize short/verbose JSON"]
-    E --> F["Scene / SourceSpec / SignalSpec / TrafficSpec"]
-    F --> G["render_synthetic()"]
-    G --> H["waveform burst generation per energy"]
-    H --> I["source effects + frequency placement"]
-    I --> J["composite Rx IQ"]
-    J --> K[".32cf"]
-    J --> L[".json metadata"]
-    J --> M["_scoring.json"]
-    K --> N["python -m rfsynth.cli plot"]
-    L --> N
-    N --> O["time / PSD / spectrogram / occupancy / overlay plots"]
-    K --> P["python -m rfsynth.cli verify"]
-    L --> P
-    P --> Q["verify.json"]
-    K --> R["python -m rfsynth.cli replay simulate"]
-    L --> R
-    R --> S["sim replay timeline JSON"]
+    D --> E["normalize_generation / normalize_rx / normalize_sources"]
+    E --> F["create_signal(...) per signal"]
+    F --> G["Scene"]
+    G --> H["render_synthetic()"]
+    H --> I["VirtualSignalEngine.render()"]
+    I --> J["Source.generate_samples() per source"]
+    J --> K["signal.generate_transmission() per atomic"]
+    K --> L["resample + frequency shift + source effects"]
+    L --> M["place_burst() into composite Rx IQ"]
+    M --> N["write .32cf + metadata + scoring JSON"]
+    N --> O["python -m rfsynth.cli plot"]
+    N --> P["python -m rfsynth.cli verify"]
+    N --> Q["python -m rfsynth.cli replay simulate"]
+    O --> R["plot bundle"]
+    P --> S["verify.json"]
+    Q --> T["sim replay timeline JSON"]
 ```
 
 ### MATLAB synthetic flow
@@ -102,30 +101,24 @@ flowchart LR
 This is the legacy/reference synthetic path used as the MATLAB oracle.
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["Config file<br/>YAML or JSON"] --> B["check_configs.py<br/>optional structural validation"]
     B --> C["auto_siggen.m or run_synthetic_json.m"]
-    C --> D["Normalize config into<br/>generationParameters + rxConfig + signals/sources"]
+    C --> D["Normalize config"]
     D --> E["Construct atomic.Rx"]
     D --> F["Construct atomic.Source[*]"]
     F --> G["Construct atomic.Signal[*]"]
-    G --> H["Traffic expansion into energies"]
-    H --> I["generateTransmission() in each atomic class"]
+    G --> H["Traffic expansion"]
+    H --> I["generateTransmission() per atomic"]
     I --> J["Source-level impairments + channel + resampling + frequency placement"]
     E --> K["VirtualSignalEngine"]
     J --> K
     K --> L["Composite IQ at Rx viewpoint"]
-    L --> M[".32cf"]
-    L --> N[".json metadata"]
-    L --> O["_scoring.json"]
-    M --> P["plot_and_verify_synthetic.py"]
-    N --> P
-    O --> P
-    P --> Q["time / PSD / spectrogram / occupancy plots"]
-    P --> R["verify.json"]
-    Q --> S["export_test_outputs.py"]
-    R --> S
-    S --> T["configs/test_outputs/*"]
+    L --> M[".32cf + metadata + scoring"]
+    M --> N["plot_and_verify_synthetic.py"]
+    N --> O["plots + verify.json"]
+    O --> P["export_test_outputs.py"]
+    P --> Q["configs/test_outputs/*"]
 ```
 
 ### Synthetic quick start
@@ -236,7 +229,7 @@ The metadata hierarchy mirrors the signal hierarchy:
 The compressed/OTA path reuses the same signal semantics, but changes how artifacts are emitted and consumed.
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["compressed_config.yml"] --> B["auto_compressed_siggen.m"]
     B --> C["CompressedEngine"]
     C --> D["Per-signal IQ payloads"]

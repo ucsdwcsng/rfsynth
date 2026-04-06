@@ -1,3 +1,11 @@
+"""Shared burst builders used by many Python-native atomics.
+
+Most thin wrapper atomics only override `Signal.generate_transmission(...)` and
+delegate here. Protocol-specific builders that need more bespoke logic live in
+their own modules, such as `bluetooth.py`, `wlan_nonht80211g.py`, and
+`nr5g.py`.
+"""
+
 from __future__ import annotations
 
 import json
@@ -14,6 +22,8 @@ from rfsynth.native.core import GeneratedBurst
 
 
 def scale_to_power(samples: np.ndarray, tx_power_db: float) -> np.ndarray:
+    """Normalize a burst to the requested amplitude scale."""
+
     rms = np.sqrt(np.mean(np.abs(samples) ** 2))
     if not np.isfinite(rms) or rms == 0:
         return samples.astype(np.complex64)
@@ -22,10 +32,14 @@ def scale_to_power(samples: np.ndarray, tx_power_db: float) -> np.ndarray:
 
 
 def samples_for_duration(duration_s: float, sample_rate_hz: float) -> int:
+    """Convert a duration to a positive integer sample count."""
+
     return max(1, int(round(duration_s * sample_rate_hz)))
 
 
 def rrc_taps(beta: float, span: int, sps: int) -> np.ndarray:
+    """Build root-raised-cosine taps for pulse-shaped symbol families."""
+
     n = np.arange(-span * sps / 2, span * sps / 2 + 1, dtype=np.float64)
     taps = np.zeros_like(n)
     for idx, x in enumerate(n):
@@ -65,6 +79,8 @@ def shaped_symbol_stream(symbols: np.ndarray, sps: int, beta: float, span: int) 
 
 
 def qam_constellation(mod_order: int) -> np.ndarray:
+    """Return a unit-power square QAM constellation."""
+
     if mod_order == 2:
         return np.array([-1, 1], dtype=np.complex128)
     side = int(round(math.sqrt(mod_order)))
@@ -117,6 +133,8 @@ def qam_symbols_from_indices(mod_order: int, indices: np.ndarray) -> np.ndarray:
 
 
 def load_test_vector_payload(args: dict[str, Any]) -> dict[str, Any] | None:
+    """Load optional compare/test payload overrides from `testVectorPath`."""
+
     path = args.get("testVectorPath")
     if not path:
         return None
@@ -148,6 +166,8 @@ def load_test_vector_payload(args: dict[str, Any]) -> dict[str, Any] | None:
 
 
 def matlab_like_ofdm_params(n_sc: int) -> dict[str, Any]:
+    """Return the OFDM indexing/pilot layout used by compare helpers."""
+
     cp_len = 16
     num_filled = round(n_sc * 52 / 64)
     num_filled += num_filled % 2
@@ -203,6 +223,8 @@ def matlab_like_ofdm_params(n_sc: int) -> dict[str, Any]:
 
 
 def am_burst(args: dict[str, Any]) -> GeneratedBurst:
+    """Generate the AM burst used by `AmSignal.generate_transmission(...)`."""
+
     fs = float(args.get("transmissionRate_Hz", 500e3))
     duration = float(args.get("transmissionTotTime", 0.004))
     n = samples_for_duration(duration, fs)
@@ -220,6 +242,8 @@ def am_burst(args: dict[str, Any]) -> GeneratedBurst:
 
 
 def fm_burst(args: dict[str, Any]) -> GeneratedBurst:
+    """Generate the FM burst used by `FmSignal.generate_transmission(...)`."""
+
     fs = float(args.get("transmissionRate_Hz", 500e3))
     duration = float(args.get("transmissionTotTime", 0.004))
     n = samples_for_duration(duration, fs)
@@ -238,6 +262,8 @@ def fm_burst(args: dict[str, Any]) -> GeneratedBurst:
 
 
 def ssb_burst(args: dict[str, Any]) -> GeneratedBurst:
+    """Generate the SSB burst used by `SsbSignal.generate_transmission(...)`."""
+
     fs = float(args.get("transmissionRate_Hz", 500e3))
     duration = float(args.get("transmissionTotTime", 0.004))
     n = samples_for_duration(duration, fs)
@@ -256,6 +282,8 @@ def ssb_burst(args: dict[str, Any]) -> GeneratedBurst:
 
 
 def sine_burst(args: dict[str, Any]) -> GeneratedBurst:
+    """Generate the tone burst used by `SineSignal.generate_transmission(...)`."""
+
     fs = float(args.get("transmissionRate_Hz", 1e6))
     duration = float(args.get("transmissionTotTime", 0.004))
     n = samples_for_duration(duration, fs)
@@ -272,6 +300,8 @@ def sine_burst(args: dict[str, Any]) -> GeneratedBurst:
 
 
 def noise_burst(args: dict[str, Any], *, total_time_s: float, rx_sample_rate_hz: float, rng: np.random.Generator) -> GeneratedBurst:
+    """Generate wideband noise for `WidebandThermalWgnSignal`."""
+
     fs = float(args.get("bandwidth_Hz", rx_sample_rate_hz))
     vector = load_test_vector_payload(args)
     if vector and "samples" in vector:
@@ -290,6 +320,8 @@ def noise_burst(args: dict[str, Any], *, total_time_s: float, rx_sample_rate_hz:
 
 
 def pam_burst(args: dict[str, Any], rng: np.random.Generator) -> GeneratedBurst:
+    """Generate a pulse-shaped PAM burst for `PamSignal`."""
+
     symbol_rate = float(args.get("transmissionRate_Hz", 1e6))
     sps = int(args.get("samplesPerSymbol", 8))
     beta = float(args.get("beta", 0.35))
@@ -315,6 +347,8 @@ def pam_burst(args: dict[str, Any], rng: np.random.Generator) -> GeneratedBurst:
 
 
 def psk_burst(args: dict[str, Any], rng: np.random.Generator) -> GeneratedBurst:
+    """Generate a pulse-shaped PSK burst for `PskSignal`."""
+
     symbol_rate = float(args.get("transmissionRate_Hz", 1e6))
     sps = int(args.get("samplesPerSymbol", 8))
     beta = float(args.get("beta", 0.35))
@@ -341,6 +375,8 @@ def psk_burst(args: dict[str, Any], rng: np.random.Generator) -> GeneratedBurst:
 
 
 def qam_burst(args: dict[str, Any], rng: np.random.Generator) -> GeneratedBurst:
+    """Generate a pulse-shaped QAM burst for `QamSignal`."""
+
     symbol_rate = float(args.get("transmissionRate_Hz", 1e6))
     sps = int(args.get("samplesPerSymbol", 8))
     beta = float(args.get("beta", 0.35))
@@ -386,6 +422,8 @@ def fsk_like_burst(
     bandwidth_hz: float,
     modulation: str,
 ) -> GeneratedBurst:
+    """Shared FSK-family implementation for FSK/CPFSK/GFSK/GMSK/MSK wrappers."""
+
     symbol_rate = float(args.get("transmissionRate_Hz", 250e3))
     sps = int(args.get("samplesPerSymbol", 8))
     mod_order = int(args.get("modOrder", 2))
@@ -427,6 +465,8 @@ def fsk_like_burst(
 
 
 def random_symbol_burst(args: dict[str, Any], rng: np.random.Generator) -> GeneratedBurst:
+    """Generate a repeated random-symbol burst for `RandomSymbolSignal`."""
+
     symbol_rate = float(args.get("transmissionRate_Hz", 1e6))
     sps = int(args.get("samplesPerSymbol", 4))
     mod_order = int(args.get("modOrder", 4))
@@ -452,6 +492,8 @@ def random_symbol_burst(args: dict[str, Any], rng: np.random.Generator) -> Gener
 
 
 def ofdm_burst(args: dict[str, Any], rng: np.random.Generator) -> GeneratedBurst:
+    """Generate the generic OFDM burst used by `OfdmSignal`."""
+
     nfft = int(args.get("Nfft", 256))
     sample_rate = float(args.get("transmissionRate_Hz", 10e6))
     cp_len = int(round(float(args.get("cpTime_s", 16 / sample_rate)) * sample_rate))
@@ -525,6 +567,8 @@ def ofdm_burst(args: dict[str, Any], rng: np.random.Generator) -> GeneratedBurst
 
 
 def bluetooth_burst(args: dict[str, Any], rng: np.random.Generator) -> GeneratedBurst:
+    """Legacy simplified Bluetooth helper kept for compare-oriented callers."""
+
     clone = dict(args)
     clone.setdefault("transmissionRate_Hz", 1e6)
     clone.setdefault("samplesPerSymbol", 8)
@@ -553,6 +597,8 @@ def bluetooth_burst(args: dict[str, Any], rng: np.random.Generator) -> Generated
 
 
 def wlan_burst(args: dict[str, Any], rng: np.random.Generator) -> GeneratedBurst:
+    """Legacy simplified WLAN helper kept for compare-oriented callers."""
+
     clone = dict(args)
     clone.setdefault("transmissionRate_Hz", 20e6)
     clone.setdefault("Nfft", 64)
@@ -569,6 +615,8 @@ def wlan_burst(args: dict[str, Any], rng: np.random.Generator) -> GeneratedBurst
 
 
 def ds3_burst(args: dict[str, Any], rng: np.random.Generator) -> GeneratedBurst:
+    """Generate the spread-spectrum DS3 burst used by `Ds3Signal`."""
+
     chips_per_symbol = int(args.get("chipsPerSymbol", 64))
     mod_order = int(args.get("modOrder", 2))
     bandwidth_hz = float(args["bandwidth_Hz"])
@@ -604,6 +652,8 @@ def ds3_burst(args: dict[str, Any], rng: np.random.Generator) -> GeneratedBurst:
 
 
 def freq_hopping_burst(args: dict[str, Any], rng: np.random.Generator) -> GeneratedBurst:
+    """Generate the hopping burst used by `FreqHoppingSignal`."""
+
     fs = float(args.get("transmissionRate_Hz", 10e6))
     total_time = float(args.get("transmissionTotTime", 0.004))
     total_samples = samples_for_duration(total_time, fs)
@@ -641,6 +691,8 @@ def freq_hopping_burst(args: dict[str, Any], rng: np.random.Generator) -> Genera
 
 
 def dummy_burst(args: dict[str, Any]) -> GeneratedBurst:
+    """Generate a zero-valued placeholder burst for `DummySignal`."""
+
     bw = float(args.get("bandwidth_Hz", 1e6))
     duration = float(args.get("transmissionTotTime", 0.004))
     n = samples_for_duration(duration, bw)

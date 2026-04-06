@@ -1,3 +1,10 @@
+"""Scene normalization for the Python-native runtime.
+
+This module translates either the short JSON schema or the legacy verbose JSON
+schema into the runtime object model used by `VirtualSignalEngine`. Atomic
+construction always goes through `build_signal(...) -> create_signal(...)`.
+"""
+
 from __future__ import annotations
 
 import json
@@ -13,6 +20,8 @@ DEFAULT_REPO_OUTPUT = Path("/tmp")
 
 
 def load_scene(path_or_dict: str | Path | dict[str, Any]) -> Scene:
+    """Load JSON or a dict and normalize it into a `Scene`."""
+
     if isinstance(path_or_dict, (str, Path)):
         path = Path(path_or_dict)
         with path.open() as f:
@@ -28,6 +37,8 @@ def load_scene(path_or_dict: str | Path | dict[str, Any]) -> Scene:
 
 
 def validate_scene(scene: Scene) -> dict[str, Any]:
+    """Run lightweight structural checks on a normalized scene."""
+
     errors: list[str] = []
     if scene.generation.total_time_s <= 0:
         errors.append("generation.total_time_s must be positive")
@@ -45,6 +56,8 @@ def validate_scene(scene: Scene) -> dict[str, Any]:
 
 
 def normalize_generation(cfg: dict[str, Any], path: Path | None) -> GenerationSpec:
+    """Normalize generation/output settings from either accepted JSON schema."""
+
     generation = dict(cfg.get("generationParameters", {}))
     output = dict(cfg.get("output", {}))
     output_base = generation.get("outputBase", output.get("outputBase"))
@@ -62,6 +75,8 @@ def normalize_generation(cfg: dict[str, Any], path: Path | None) -> GenerationSp
 
 
 def normalize_rx(cfg: dict[str, Any]) -> Rx:
+    """Normalize receiver fields into the runtime `Rx` object."""
+
     rx_cfg = dict(cfg.get("rxConfig", {}))
     short_rx = dict(cfg.get("rx", {}))
     sample_rate = rx_cfg.get("rxSampleRate_Hz", short_rx.get("rxSampleRate_Hz", short_rx.get("sampleRate_Hz")))
@@ -76,6 +91,8 @@ def normalize_rx(cfg: dict[str, Any]) -> Rx:
 
 
 def normalize_sources(cfg: dict[str, Any], total_time_s: float) -> list[Source]:
+    """Build runtime sources, auto-wrapping top-level signals when needed."""
+
     if "sources" in cfg:
         return [normalize_source(source, total_time_s) for source in cfg["sources"]]
 
@@ -96,6 +113,8 @@ def normalize_sources(cfg: dict[str, Any], total_time_s: float) -> list[Source]:
 
 
 def normalize_source(source: dict[str, Any], total_time_s: float) -> Source:
+    """Normalize one explicit source entry and attach its signals."""
+
     location = tuple(float(x) for x in source.get("location", [0, 0, 0]))
     spec = Source(
         name=str(source.get("name", "Source")),
@@ -112,6 +131,8 @@ def normalize_source(source: dict[str, Any], total_time_s: float) -> Source:
 
 
 def normalize_signal_args(signal: dict[str, Any]) -> dict[str, Any]:
+    """Extract the atomic argument dict from short or verbose signal syntax."""
+
     args = dict(signal.get("args", {}))
     if not args:
         args = {k: v for k, v in signal.items() if k != "type"}
@@ -121,6 +142,8 @@ def normalize_signal_args(signal: dict[str, Any]) -> dict[str, Any]:
 
 
 def parse_traffic(spec: dict[str, Any] | str | None, total_time_s: float) -> Traffic:
+    """Normalize traffic config into the runtime `Traffic` model."""
+
     if spec is None:
         return Traffic(traffic_type="periodic", transmission_per_sec=100.0)
     if isinstance(spec, str):
@@ -142,6 +165,8 @@ def parse_traffic(spec: dict[str, Any] | str | None, total_time_s: float) -> Tra
 
 
 def build_signal(signal: dict[str, Any], total_time_s: float):
+    """Construct one runtime atomic via the registry-backed factory."""
+
     args = normalize_signal_args(signal)
     traffic = parse_traffic(args.get("trafficType"), total_time_s)
     return create_signal(str(signal["type"]), args=args, traffic=traffic)

@@ -2,6 +2,10 @@
 
 This document describes the current `rfsynth` flow end to end, including the new Python-native synthetic path, the legacy/reference MATLAB synthetic path, plotting and verification, compressed artifact generation, and OTA replay.
 
+For the exact Python-native call order and the non-LTE atomic dispatch map, see:
+
+- [PYTHON_NATIVE_RUNTIME.md](./PYTHON_NATIVE_RUNTIME.md)
+
 ## 1. System split
 
 `rfsynth` is now split into three practical subsystems:
@@ -67,45 +71,94 @@ Detailed field definitions are documented in:
 The new Python-native path is JSON-first and is the target architecture for the rebuild.
 
 ```mermaid
-flowchart LR
-    A["Short JSON scene"] --> B["load_scene()"]
-    B --> C["normalize_generation / normalize_rx / normalize_sources"]
-    C --> D["Scene"]
-    D --> E["render_synthetic()"]
-    E --> F["compute_transmission_windows()"]
-    F --> G["generate_burst() per atomic waveform"]
-    G --> H["resample + frequency shift + source effects"]
-    H --> I["composite IQ at Rx viewpoint"]
-    I --> J["<base>.32cf"]
-    I --> K["<base>.json"]
-    I --> L["<base>_scoring.json"]
-    J --> M["plot_artifacts()"]
-    K --> M
-    M --> N["time / PSD / spectrogram / occupancy / overlay PNGs"]
-    J --> O["verify_artifacts()"]
-    K --> O
-    O --> P["<base>_verify.json"]
-    K --> Q["compile_replay()"]
-    Q --> R["ReplayPlan"]
-    R --> S["run_replay(..., backend='sim')"]
-    S --> T["<base>_sim_replay.json"]
-    R --> U["run_replay(..., backend='uhd')"]
-    U --> V["Direct-UHD scaffold for milestone 2"]
+flowchart TD
+    subgraph Load["Load and normalize"]
+        A["Short JSON scene"] --> B["load_scene()"]
+        B --> C["normalize_generation()"]
+        B --> D["normalize_rx()"]
+        B --> E["normalize_sources()"]
+        E --> F["build_signal()"]
+        F --> G["create_signal() via registry"]
+        C --> H["Scene"]
+        D --> H
+        G --> H
+    end
+
+    subgraph Render["Render scene"]
+        H --> I["render_synthetic()"]
+        I --> J["VirtualSignalEngine.render()"]
+        J --> K["VirtualSignalEngine.generate_samples()"]
+        K --> L["Source.generate_samples() per source"]
+        L --> M["signal.generate_transmission() per atomic"]
+        M --> N["resample_if_needed()"]
+        N --> O["frequency_shift()"]
+        O --> P["source effects + channel"]
+        P --> Q["compute_transmission_windows()"]
+        Q --> R["place_burst() into composite"]
+        R --> S["build_render_result()"]
+        S --> T["build_metadata() + build_scoring()"]
+        T --> U["write .32cf + metadata + scoring"]
+    end
+
+    subgraph Consume["Consume artifacts"]
+        U --> V["plot_artifacts()"]
+        U --> W["verify_artifacts()"]
+        U --> X["compile_replay()"]
+        V --> Y["PNG plot bundle"]
+        W --> Z["<base>_verify.json"]
+        X --> AA["ReplayPlan"]
+        AA --> AB["run_replay(..., backend='sim')"]
+        AA --> AC["run_replay(..., backend='uhd')"]
+    end
 ```
 
-### 4.1 Python-native package layout
+### 4.1 Exact Python-native call stack
+
+The current render stack is:
+
+```text
+render_synthetic(...)
+  -> load_scene(...)                         when needed
+    -> normalize_generation(...)
+    -> normalize_rx(...)
+    -> normalize_sources(...)
+      -> build_signal(...)
+        -> parse_traffic(...)
+        -> create_signal(...)
+  -> VirtualSignalEngine(scene).render(...)
+    -> VirtualSignalEngine.generate_samples(...)
+      -> Source.generate_samples(...)
+        -> signal.generate_transmission(...)
+        -> resample_if_needed(...)
+        -> frequency_shift(...)
+        -> apply_nonideal_transform(...)
+        -> apply_channel(...)
+        -> signal.compute_transmission_windows(...)
+        -> place_burst(...)
+        -> signal.build_render_result(...)
+    -> build_metadata(...)
+    -> build_scoring(...)
+    -> write_cf32(...)
+```
+
+### 4.2 Python-native package layout
 
 The new code lives under `rfsynth/native/`:
 
-- `models.py`: `TrafficSpec`, `SignalSpec`, `SourceSpec`, `RxSpec`, `Scene`, `ArtifactBundle`, `ReplayPlan`
-- `scene.py`: short/verbose JSON normalization and validation
-- `waveforms.py`: atomic burst generators and traffic expansion
-- `render.py`: synthetic composite rendering and metadata/scoring emission
+- `__init__.py`: public Python-native exports
+- `models.py`: lightweight data containers such as `GenerationSpec`, `TransmissionWindow`, `ArtifactBundle`, and `ReplayPlan`
+- `scene.py`: short/verbose JSON normalization plus `Scene` construction
+- `core.py`: runtime object model, scene render loop, metadata/scoring assembly, and `.32cf` writing
+- `atomic/__init__.py`: atomic registry plus `create_signal(...)`
+- `atomic/common.py`: shared burst helpers used by many atomics
+- `atomic/*.py`: atomic-specific `Signal.generate_transmission(...)` implementations
+- `render.py`: thin wrapper around `VirtualSignalEngine.render(...)`
 - `plotting.py`: plot generation and visual verification
 - `replay.py`: replay-plan compilation plus simulated and UHD-shaped backends
-- `cli.py`: thin CLI surface
+- `waveforms.py`: compatibility layer used by tests and compare helpers, not the main render loop
+- `atomic_compare.py`: shared-vector and raw-burst compare helpers
 
-### 4.2 Python-native public interface
+### 4.3 Python-native public interface
 
 The top-level Python package exports:
 
@@ -116,7 +169,7 @@ The top-level Python package exports:
 - `compile_replay(scene_or_bundle) -> ReplayPlan`
 - `run_replay(plan, backend="sim"|"uhd") -> ReplayRunReport`
 
-### 4.3 Python-native config normalization
+### 4.4 Python-native config normalization
 
 The canonical user-facing config is the short JSON schema:
 
@@ -126,7 +179,7 @@ The canonical user-facing config is the short JSON schema:
 
 The Python-native loader also accepts the current verbose JSON schema and normalizes both into the same internal `Scene` model. This keeps compatibility with the existing public configs while making the short JSON form the product-facing default.
 
-### 4.4 Python-native waveform coverage
+### 4.5 Python-native waveform coverage
 
 Milestone 1 includes Python-native implementations for the current public atomic inventory:
 
@@ -153,12 +206,16 @@ Milestone 1 includes Python-native implementations for the current public atomic
 
 The Python-native implementation aims for behavior-level parity with the MATLAB path, not sample-for-sample equality.
 
+The exact non-LTE dispatch map is documented in:
+
+- [PYTHON_NATIVE_RUNTIME.md](./PYTHON_NATIVE_RUNTIME.md)
+
 ## 5. MATLAB synthetic generation flow
 
 The synthetic path is the main path for generated IQ plus metadata.
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["YAML or JSON config"] --> B["check_configs.py<br/>optional"]
     B --> C["auto_siggen.m or run_synthetic_json.m"]
     C --> D["Normalized config"]
@@ -172,8 +229,8 @@ flowchart LR
     E --> L["VirtualSignalEngine"]
     K --> L
     L --> M["Composite IQ"]
-    L --> N["Metadata JSON"]
-    L --> O["Scoring JSON"]
+    M --> N["Metadata JSON"]
+    M --> O["Scoring JSON"]
 ```
 
 ### 5.1 Synthetic config normalization
@@ -236,7 +293,7 @@ These are written through `VirtualSignalEngine.writeDataFiles(...)`.
 The plotting/verification path is synthetic-only and now runs directly on Python-native artifacts or MATLAB-generated artifacts with the same file layout.
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["<base>.32cf"] --> B["plot_and_verify_synthetic.py"]
     C["<base>.json"] --> B
     D["<base>_scoring.json"] --> B
@@ -265,7 +322,7 @@ This is how the repo currently validates the synthetic atomic configs and the sn
 The repo keeps generated IQ files in `/tmp`, but stores plots and metadata snapshots inside the repo for inspection.
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["/tmp/<base>.json"] --> D["export_test_outputs.py"]
     B["/tmp/<base>_scoring.json"] --> D
     C["/tmp/<base>_*.png"] --> D
@@ -296,7 +353,7 @@ No `.32cf` files are copied into the repo.
 The migration strategy uses MATLAB as a behavior oracle rather than requiring sample-for-sample equality.
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["Public JSON config"] --> B["render_synthetic() in Python"]
     A --> C["run_synthetic_json.m in MATLAB"]
     B --> D["Python metadata + verify.json"]
@@ -324,7 +381,7 @@ Current oracle acceptance is behavior-level:
 The compressed path is used when the goal is long-duration replay rather than a single fully synthesized IQ output.
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["compressed_config.yml"] --> B["auto_compressed_siggen.m"]
     B --> C["CompressedEngine"]
     C --> D["Signal-to-Tx assignment"]
@@ -352,7 +409,7 @@ Key distinction from the synthetic path:
 The Python OTA path consumes the compressed bundle and maps it to real radios.
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["compressed zip bundle"] --> B["rfsynth_tx.py"]
     B --> C["utils.py"]
     C --> D["Archive extraction"]

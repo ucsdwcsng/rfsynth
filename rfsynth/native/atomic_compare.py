@@ -1,3 +1,9 @@
+"""Helpers for single-atomic test vectors and MATLAB/Python burst compares.
+
+This file is a sidecar for parity/debug workflows. It is not used by the
+standard scene render loop in `VirtualSignalEngine`.
+"""
+
 from __future__ import annotations
 
 import json
@@ -21,12 +27,16 @@ from rfsynth.native.waveforms import qam_constellation, rrc_taps
 
 @dataclass(slots=True)
 class AtomicBurst:
+    """Raw burst plus sample rate emitted by a single atomic."""
+
     signal_type: str
     sample_rate_hz: float
     samples: np.ndarray
 
 
 def load_single_signal(path_or_dict: str | Path | dict[str, Any]) -> tuple[Scene, Signal]:
+    """Load a config and require that it contains exactly one signal."""
+
     scene = load_scene(path_or_dict)
     signals = [signal for source in scene.sources for signal in source.signals]
     if len(signals) != 1:
@@ -35,10 +45,14 @@ def load_single_signal(path_or_dict: str | Path | dict[str, Any]) -> tuple[Scene
 
 
 def mt19937(seed: int) -> np.random.Generator:
+    """Create the deterministic RNG used by compare workflows."""
+
     return np.random.Generator(np.random.MT19937(seed))
 
 
 def generate_test_vector(config: str | Path | dict[str, Any], out_path: str | Path, seed: int = 1234) -> Path | None:
+    """Emit a shared test vector payload for one atomic compare case."""
+
     scene, signal_spec = load_single_signal(config)
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -180,6 +194,8 @@ def generate_test_vector(config: str | Path | dict[str, Any], out_path: str | Pa
 
 
 def generate_python_atomic_burst(config: str | Path | dict[str, Any], seed: int = 1234) -> AtomicBurst:
+    """Render a single atomic burst without scene-level placement logic."""
+
     scene, signal_spec = load_single_signal(config)
     rng = mt19937(seed)
     burst = signal_spec.generate_transmission(scene, rng)
@@ -187,6 +203,8 @@ def generate_python_atomic_burst(config: str | Path | dict[str, Any], seed: int 
 
 
 def raw_sine(signal_spec: Signal) -> tuple[np.ndarray, float]:
+    """Reference raw tone builder used by compare flows."""
+
     args = signal_spec.args
     fs = float(args.get("transmissionRate_Hz", 1e6))
     n_samples = max(1, int(round(float(args.get("transmissionTotTime", 0.004)) * fs)))
@@ -196,6 +214,8 @@ def raw_sine(signal_spec: Signal) -> tuple[np.ndarray, float]:
 
 
 def raw_am(signal_spec: Signal) -> tuple[np.ndarray, float]:
+    """Reference AM builder used by compare flows."""
+
     args = signal_spec.args
     fs = float(args.get("transmissionRate_Hz", 500e3))
     n_samples = max(1, int(round(float(args.get("transmissionTotTime", 0.004)) * fs)))
@@ -206,6 +226,8 @@ def raw_am(signal_spec: Signal) -> tuple[np.ndarray, float]:
 
 
 def raw_qam(signal_spec: Signal, rng: np.random.Generator) -> tuple[np.ndarray, float]:
+    """Reference QAM builder for direct raw-burst comparisons."""
+
     args = signal_spec.args
     symbol_rate = float(args.get("transmissionRate_Hz", 1e6))
     sps = int(args.get("samplesPerSymbol", 8))
@@ -225,6 +247,8 @@ def raw_qam(signal_spec: Signal, rng: np.random.Generator) -> tuple[np.ndarray, 
 
 
 def raw_ofdm(signal_spec: Signal, rng: np.random.Generator) -> tuple[np.ndarray, float]:
+    """Reference OFDM builder for direct raw-burst comparisons."""
+
     args = signal_spec.args
     nfft = int(args.get("Nfft", 256))
     sample_rate_hz = float(args.get("transmissionRate_Hz", 10e6))
@@ -258,6 +282,8 @@ def raw_ofdm(signal_spec: Signal, rng: np.random.Generator) -> tuple[np.ndarray,
 
 
 def maybe_load_test_vector(args: dict[str, Any]) -> dict[str, np.ndarray] | None:
+    """Load compare-side payload overrides from `testVectorPath`."""
+
     path = args.get("testVectorPath")
     if not path:
         return None
@@ -273,6 +299,8 @@ def maybe_load_test_vector(args: dict[str, Any]) -> dict[str, np.ndarray] | None
 
 
 def write_cf32(path: str | Path, samples: np.ndarray) -> Path:
+    """Write a raw burst to interleaved float32 IQ format."""
+
     path = Path(path)
     raw = np.empty(samples.size * 2, dtype=np.float32)
     raw[0::2] = np.real(samples).astype(np.float32)
@@ -288,6 +316,8 @@ def compare_iq(
     drop_first_samples: int = 100,
     xcorr_window_samples: int = 131072,
 ) -> dict[str, Any]:
+    """Compute alignment-aware error metrics between Python and MATLAB IQ."""
+
     prepared = prepare_compare_inputs(
         python_samples,
         matlab_samples,
@@ -350,6 +380,8 @@ def write_compare_plots(
     drop_first_samples: int = 100,
     xcorr_window_samples: int = 131072,
 ) -> dict[str, str]:
+    """Write time, PSD, and spectrogram comparison plots."""
+
     out_prefix = Path(out_prefix)
     prepared = prepare_compare_inputs(
         python_samples,
@@ -381,6 +413,8 @@ def prepare_compare_inputs(
     drop_first_samples: int,
     xcorr_window_samples: int,
 ) -> dict[str, Any]:
+    """Drop startup samples, estimate lag, and align vectors for compare."""
+
     sample_count = min(len(python_samples), len(matlab_samples))
     python_samples = python_samples[:sample_count]
     matlab_samples = matlab_samples[:sample_count]

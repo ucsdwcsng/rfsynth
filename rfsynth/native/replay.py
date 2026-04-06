@@ -1,3 +1,5 @@
+"""Replay planning and backend scaffolding for rendered artifacts."""
+
 from __future__ import annotations
 
 import json
@@ -13,6 +15,8 @@ from rfsynth.native.scene import load_scene
 
 
 def compile_replay(scene_or_bundle: Scene | ArtifactBundle | str | Path | dict) -> ReplayPlan:
+    """Compile a replay plan from a scene, bundle, or existing artifact base."""
+
     if isinstance(scene_or_bundle, ArtifactBundle):
         bundle = scene_or_bundle
     elif isinstance(scene_or_bundle, Scene):
@@ -60,6 +64,8 @@ def compile_replay(scene_or_bundle: Scene | ArtifactBundle | str | Path | dict) 
 
 
 def run_replay(plan: ReplayPlan, backend: str = "sim", radio_config: str | Path | None = None, out_dir: str | Path | None = None) -> ReplayRunReport:
+    """Execute a replay plan using the requested backend."""
+
     out_root = Path(out_dir) if out_dir is not None else (plan.base_path.parent if plan.base_path is not None else Path("/tmp"))
     backend_obj: ReplayBackend
     if backend == "sim":
@@ -72,6 +78,8 @@ def run_replay(plan: ReplayPlan, backend: str = "sim", radio_config: str | Path 
 
 
 class ReplayBackend(ABC):
+    """Abstract base class for replay backends."""
+
     def __init__(self, out_root: Path):
         self.out_root = out_root
         self.out_root.mkdir(parents=True, exist_ok=True)
@@ -82,6 +90,8 @@ class ReplayBackend(ABC):
 
 
 class SimReplayBackend(ReplayBackend):
+    """Dry-run backend that serializes the replay timeline to JSON."""
+
     def run(self, plan: ReplayPlan) -> ReplayRunReport:
         output_path = self.out_root / f"{plan.scene_id}_sim_replay.json"
         timeline = [
@@ -114,6 +124,8 @@ class SimReplayBackend(ReplayBackend):
 
 
 class UhdReplayBackend(ReplayBackend):
+    """Placeholder backend boundary for direct UHD replay."""
+
     def __init__(self, out_root: Path, radio_config: str | Path | None = None):
         super().__init__(out_root)
         self.radio_config = None if radio_config is None else Path(radio_config)

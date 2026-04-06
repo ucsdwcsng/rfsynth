@@ -1,3 +1,10 @@
+"""Small data containers shared across the Python-native runtime.
+
+These classes intentionally carry very little behavior. They let the runtime
+pass around a normalized scene, per-signal render results, plot outputs, and
+replay plans without depending on MATLAB structs.
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -9,6 +16,8 @@ import numpy as np
 
 @dataclass(slots=True)
 class GenerationSpec:
+    """Normalized generation-level output settings for one scene."""
+
     total_time_s: float
     output_folder: Path
     output_base: str
@@ -17,12 +26,16 @@ class GenerationSpec:
 
 @dataclass(slots=True)
 class TransmissionWindow:
+    """One [start, stop] interval where a burst should be placed in the scene."""
+
     start_time: float
     stop_time: float
 
 
 @dataclass(slots=True)
 class SignalRenderResult:
+    """Per-signal metadata assembled after the burst has been rendered."""
+
     instance_name: str
     source_name: str
     source_origin: str
@@ -44,6 +57,8 @@ class SignalRenderResult:
 
 @dataclass(slots=True)
 class ArtifactBundle:
+    """The complete output of one synthetic render invocation."""
+
     scene: Any
     base_path: Path
     iq_path: Path
@@ -57,12 +72,16 @@ class ArtifactBundle:
 
 @dataclass(slots=True)
 class PlotBundle:
+    """Paths to the PNG plots generated from one rendered artifact bundle."""
+
     base_path: Path
     paths: dict[str, Path]
 
 
 @dataclass(slots=True)
 class ReplayEvent:
+    """One timed replay event derived from rendered transmission metadata."""
+
     instance_name: str
     source_name: str
     signal_name: str
@@ -76,6 +95,8 @@ class ReplayEvent:
 
 @dataclass(slots=True)
 class ReplayPlan:
+    """Flattened replay schedule produced from rendered metadata."""
+
     scene_id: str
     sample_rate_hz: float
     center_freq_hz: float
@@ -85,6 +106,8 @@ class ReplayPlan:
 
 @dataclass(slots=True)
 class ReplayRunReport:
+    """Backend-specific summary for one replay execution attempt."""
+
     backend: str
     event_count: int
     output_path: Path | None

@@ -1,3 +1,15 @@
+"""Python-native 5G NR atomic implementation.
+
+Call path:
+
+`scene.build_signal(...) -> create_signal("nr5g")`
+`-> Nr5gSignal.generate_transmission(scene, rng)`
+`-> nr5g_burst(args, rng)`.
+
+This module currently supports a narrow parameter-driven slice of NR control
+and PDSCH-like presets and performs its own OFDM assembly plus final resample.
+"""
+
 from __future__ import annotations
 
 import json
@@ -109,6 +121,8 @@ def _qpsk_from_bits(bits: np.ndarray, count: int) -> np.ndarray:
 
 
 def nr5g_burst(args: dict, rng: np.random.Generator | None = None, *, apply_power: bool = True) -> GeneratedBurst:
+    """Build one NR burst from the supported runtime slice."""
+
     if rng is None:
         rng = np.random.Generator(np.random.MT19937(1234))
     grid_size = int(args.get("gridSize", args.get("NDLRB", GRID_SIZE)))
@@ -271,6 +285,8 @@ def nr5g_burst(args: dict, rng: np.random.Generator | None = None, *, apply_powe
 
 
 class Nr5gSignal(Signal):
+    """Runtime wrapper that dispatches to `nr5g_burst(...)`."""
+
     def generate_transmission(self, scene: Scene, rng):
         del scene
         return nr5g_burst(self.args, rng)
