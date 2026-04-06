@@ -47,9 +47,14 @@ function [dataIQ, info] = lteDlFddWaveform(varargin)
         else
             msg_len = 0;
             for subframe_index = 0 : cfgLTE.TotSubframes - 1
-                cfgLTE.NSubframe = mod(subframe_index, 10);
-                [~, pdschInfo] = ltePDSCHIndices(cfgLTE, pdsch, pdsch.PRBSet, {'1based'});
-                msg_len = msg_len + pdschInfo.G;
+                tb_size = lookupTransportBlockSizeLocal(opts, subframe_index);
+                if ~isempty(tb_size)
+                    msg_len = msg_len + tb_size;
+                else
+                    cfgLTE.NSubframe = mod(subframe_index, 10);
+                    [~, pdschInfo] = ltePDSCHIndices(cfgLTE, pdsch, pdsch.PRBSet, {'1based'});
+                    msg_len = msg_len + pdschInfo.G;
+                end
             end
             message = randi([0 1], msg_len, 1);
         end
@@ -68,4 +73,50 @@ function [dataIQ, info] = lteDlFddWaveform(varargin)
         'bandwidth_Hz', bandwidth_Hz, ...
         'transmissionRate_Hz', transmissionRate_Hz, ...
         'modulation', string(opts.modulation));
+end
+
+function tbSize = lookupTransportBlockSizeLocal(opts, subframeIndex)
+    tbSize = [];
+    if opts.NDLRB == 6 && strcmpi(string(opts.CP), "Normal") && strcmpi(string(opts.modulation), "QPSK")
+        schedule = [328, 712, 712, 712, 712, 600, 712, 712, 712, 712];
+        tbSize = schedule(mod(subframeIndex, numel(schedule)) + 1);
+        return
+    end
+
+    if ~strcmpi(string(opts.CP), "Normal")
+        return
+    end
+
+    if strcmpi(string(opts.modulation), "QPSK")
+        switch opts.NDLRB
+            case 15
+                tbSize = 1544;
+            case 25
+                tbSize = 3112;
+            case 50
+                tbSize = 6200;
+            case 75
+                tbSize = 9144;
+            case 100
+                tbSize = 14112;
+        end
+        return
+    end
+
+    if strcmpi(string(opts.modulation), "16QAM")
+        switch opts.NDLRB
+            case 6
+                tbSize = 1032;
+            case 15
+                tbSize = 3880;
+            case 25
+                tbSize = 6456;
+            case 50
+                tbSize = 14112;
+            case 75
+                tbSize = 21384;
+            case 100
+                tbSize = 28336;
+        end
+    end
 end

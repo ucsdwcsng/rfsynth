@@ -120,7 +120,10 @@ def generate_test_vector(config: str | Path | dict[str, Any], out_path: str | Pa
             "scrambler_initialization": [int(signal_spec.args.get("scramblerInitialization", 93))],
         }
     elif signal_type == "LTE_DL_FDD":
+        from rfsynth.native.atomic.lte_dl_fdd import _lte_transport_block_bits_total
+
         message = signal_spec.args.get("message")
+        transport_len = _lte_transport_block_bits_total(signal_spec.args)
         if message is None:
             message_path = signal_spec.args.get("messagePath")
             if message_path and Path(message_path).exists():
@@ -129,9 +132,11 @@ def generate_test_vector(config: str | Path | dict[str, Any], out_path: str | Pa
                     message = raw["message_bits"]
                 else:
                     message = raw.get("payload", {}).get("message_bits")
+                if transport_len is not None and message is not None and len(message) != transport_len:
+                    message = None
         if message is None:
-            # Narrow one-shot LTE preset currently uses a fixed 672-bit payload.
-            message = rng.integers(0, 2, size=672).tolist()
+            length = 672 if transport_len is None else int(transport_len)
+            message = rng.integers(0, 2, size=length).tolist()
         payload = {
             "message_bits": np.asarray(message, dtype=np.int64).tolist(),
         }

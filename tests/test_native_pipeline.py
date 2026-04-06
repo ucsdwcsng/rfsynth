@@ -8,6 +8,29 @@ from pathlib import Path
 import numpy as np
 
 from rfsynth import Scene, Signal, Source, Traffic, VirtualSignalEngine, compile_replay, load_scene, plot_artifacts, render_synthetic, run_replay, verify_artifacts
+from rfsynth.native.atomic.lte_dl_fdd import (
+    _lte_code_block_segment,
+    _lte_crc_attach,
+    _lte_default_dci_bits,
+    _lte_dlsch_encode_transport_block,
+    _lte_dlsch_info,
+    _lte_dlsch_rate_match_lengths,
+    _lte_expected_payload_bits,
+    _lte_message_bits,
+    _lte_pdcch_candidate_starts,
+    _lte_pdcch_n_cce,
+    _lte_pdcch_prbs,
+    _lte_pdsch_scramble,
+    _lte_phich_rows,
+    _lte_phich_symbols,
+    _lte_qpp_interleaver_indices,
+    _lte_qpp_interleaver_params,
+    _lte_rate_match_turbo_block,
+    _lte_sync_symbol_indices,
+    _lte_transport_stream_window,
+    _lte_turbo_encode_block,
+    _lte_transport_block_bits_total,
+)
 from rfsynth.native.atomic.nr5g_template import symbol_phase_sequence
 from rfsynth.native.waveforms import compute_transmission_windows
 
@@ -259,6 +282,199 @@ class NativePipelineTest(unittest.TestCase):
         self.assertEqual(burst.extras["NDLRB"], 6)
         self.assertEqual(burst.extras["TotSubframes"], 1)
         self.assertEqual(burst.extras["modulation"], "16QAM")
+
+    def test_lte_transport_helpers_match_known_36212_entries(self) -> None:
+        self.assertEqual(_lte_qpp_interleaver_params(40), (3, 10))
+        self.assertEqual(_lte_qpp_interleaver_params(704), (155, 44))
+        interleaver = _lte_qpp_interleaver_indices(40)
+        self.assertEqual(interleaver.tolist()[:8], [0, 13, 6, 19, 12, 25, 18, 31])
+
+        info = _lte_dlsch_info(672 + 24)
+        self.assertEqual(info, {"C": 1, "Km": 0, "Cm": 0, "Kp": 704, "Cp": 1, "F": 8, "L": 0, "Bout": 704})
+
+        block = _lte_code_block_segment(np.ones(696, dtype=np.int8))[0]
+        self.assertEqual(block.shape[0], 704)
+        self.assertTrue(np.all(block[:8] == -1))
+        self.assertTrue(np.all(block[8:] == 1))
+
+        self.assertEqual(
+            _lte_transport_block_bits_total({"NDLRB": 6, "CP": "Normal", "modulation": "QPSK", "TotSubframes": 1}),
+            328,
+        )
+        self.assertEqual(
+            _lte_transport_block_bits_total({"NDLRB": 6, "CP": "Normal", "modulation": "QPSK", "TotSubframes": 5}),
+            3176,
+        )
+        self.assertEqual(
+            _lte_transport_block_bits_total({"NDLRB": 6, "CP": "Extended", "modulation": "QPSK", "TotSubframes": 1}),
+            208,
+        )
+        self.assertEqual(
+            _lte_expected_payload_bits({"NDLRB": 6, "CP": "Extended", "modulation": "QPSK", "TotSubframes": 1}),
+            408,
+        )
+        self.assertEqual(
+            _lte_transport_block_bits_total({"NDLRB": 50, "CP": "Normal", "modulation": "QPSK", "TotSubframes": 1}),
+            6200,
+        )
+        self.assertEqual(
+            _lte_transport_block_bits_total({"NDLRB": 100, "CP": "Normal", "modulation": "16QAM", "TotSubframes": 1}),
+            25456,
+        )
+
+    def test_lte_turbo_encode_matches_known_k40_probe(self) -> None:
+        message = np.array(json.loads("[0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1]"), dtype=np.int8)
+        expected = np.array(json.loads("[0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0]"), dtype=np.int8)
+        np.testing.assert_array_equal(_lte_turbo_encode_block(message), expected)
+
+    def test_lte_dlsch_narrow_transport_block_matches_known_oracle_bits(self) -> None:
+        message = np.array(json.loads("[0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0]"), dtype=np.int8)
+        expected_head = [
+            0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1,
+            1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 1,
+            1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 1,
+            1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1,
+        ]
+        expected_tail = [1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1]
+        coded = _lte_dlsch_encode_transport_block(message, 672, rv=0)
+        self.assertEqual(coded.shape[0], 672)
+        self.assertEqual(coded.tolist()[:64], expected_head)
+        self.assertEqual(coded.tolist()[-32:], expected_tail)
+        rate_only = _lte_rate_match_turbo_block(_lte_turbo_encode_block(_lte_code_block_segment(_lte_crc_attach(message, "24A"))[0]), 672, rv=0)
+        np.testing.assert_array_equal(coded, rate_only)
+
+    def test_lte_dlsch_info_matches_known_multiblock_breakpoints(self) -> None:
+        self.assertEqual(
+            _lte_dlsch_info(6144 + 24),
+            {"C": 2, "Km": 3072, "Cm": 0, "Kp": 3136, "Cp": 2, "F": 56, "L": 24, "Bout": 6272},
+        )
+        self.assertEqual(
+            _lte_dlsch_info(7000 + 24),
+            {"C": 2, "Km": 3520, "Cm": 1, "Kp": 3584, "Cp": 1, "F": 32, "L": 24, "Bout": 7104},
+        )
+        self.assertEqual(
+            _lte_dlsch_info(20000 + 24),
+            {"C": 4, "Km": 4992, "Cm": 1, "Kp": 5056, "Cp": 3, "F": 40, "L": 24, "Bout": 20160},
+        )
+
+    def test_lte_code_block_segment_multiblock_layout(self) -> None:
+        bits = np.ones(7000 + 24, dtype=np.int8)
+        blocks = _lte_code_block_segment(bits)
+        self.assertEqual([block.shape[0] for block in blocks], [3520, 3584])
+        self.assertTrue(np.all(blocks[0][:32] == -1))
+        self.assertTrue(np.all(blocks[0][32:-24] == 1))
+        self.assertTrue(np.all(blocks[1][:-24] == 1))
+
+    def test_lte_dlsch_rate_match_lengths_sum_to_requested_g(self) -> None:
+        self.assertEqual(_lte_dlsch_rate_match_lengths(672, 1, "QPSK"), [672])
+        self.assertEqual(_lte_dlsch_rate_match_lengths(26760, 3, "QPSK"), [8920, 8920, 8920])
+        self.assertEqual(sum(_lte_dlsch_rate_match_lengths(28336, 5, "16QAM")), 28336)
+
+    def test_lte_dlsch_encode_multiblock_matches_requested_length(self) -> None:
+        message = np.arange(28336, dtype=np.int8) & 1
+        coded = _lte_dlsch_encode_transport_block(message, 110976, rv=0, modulation="16QAM")
+        self.assertEqual(coded.shape[0], 110976)
+
+    def test_lte_message_path_preserves_explicit_codeword_bits(self) -> None:
+        cfg = json.loads((REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd_16qam.json").read_text())
+        args = cfg["sources"][0]["signals"][0]["args"]
+        bits = _lte_message_bits(args, np.random.Generator(np.random.MT19937(1234)))
+        self.assertEqual(bits.shape[0], 1344)
+        self.assertEqual(bits[:16].tolist(), [0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1])
+        window, cursor = _lte_transport_stream_window(bits[:6], 4, 8)
+        self.assertEqual(window.tolist(), [1, 0, 0, 1, 0, 1, 1, 0])
+        self.assertEqual(cursor, 12)
+
+    def test_lte_pdcch_candidate_search_matches_known_50rb_probe(self) -> None:
+        total_regs = 240
+        self.assertEqual(_lte_pdcch_n_cce(total_regs), 26)
+        self.assertEqual(_lte_pdcch_candidate_starts(total_regs, 0), [20, 0])
+        self.assertEqual(_lte_pdcch_prbs(16).tolist(), [0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1])
+        self.assertEqual(_lte_pdcch_prbs(16, 1).tolist(), [0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0])
+        expected = [
+            complex(-0.7071067811865475, -0.7071067811865475),
+            complex(0.7071067811865475, 0.7071067811865475),
+            complex(0.7071067811865475, 0.7071067811865475),
+            complex(0.7071067811865475, 0.7071067811865475),
+            complex(-0.7071067811865475, -0.7071067811865475),
+            complex(0.7071067811865475, 0.7071067811865475),
+            complex(-0.7071067811865475, -0.7071067811865475),
+            complex(0.7071067811865475, 0.7071067811865475),
+            complex(-0.7071067811865475, -0.7071067811865475),
+            complex(0.7071067811865475, 0.7071067811865475),
+            complex(0.7071067811865475, 0.7071067811865475),
+            complex(0.7071067811865475, 0.7071067811865475),
+        ]
+        self.assertEqual(
+            _lte_phich_rows(100),
+            [
+                (66, 68, 69, 71),
+                (462, 464, 465, 467),
+                (858, 860, 861, 863),
+                (72, 74, 75, 77),
+                (468, 470, 471, 473),
+                (864, 866, 867, 869),
+                (78, 80, 81, 83),
+                (474, 476, 477, 479),
+                (870, 872, 873, 875),
+            ],
+        )
+        self.assertEqual(
+            _lte_phich_rows(75),
+            [
+                (66, 68, 69, 71),
+                (360, 362, 363, 365),
+                (660, 662, 663, 665),
+                (72, 74, 75, 77),
+                (366, 368, 369, 371),
+                (666, 668, 669, 671),
+            ],
+        )
+        self.assertEqual(_lte_sync_symbol_indices("Normal"), (5, 6))
+        self.assertEqual(_lte_sync_symbol_indices("Extended"), (4, 5))
+        self.assertEqual(
+            _lte_pdsch_scramble(np.zeros(32, dtype=np.int8), 0).tolist(),
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+        )
+        self.assertEqual(
+            _lte_pdsch_scramble(np.zeros(32, dtype=np.int8), 1).tolist(),
+            [0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+        )
+        np.testing.assert_allclose(_lte_phich_symbols(0, 1, "Normal"), np.asarray(expected, dtype=np.complex128), atol=1e-12, rtol=0.0)
+        np.testing.assert_allclose(
+            _lte_phich_symbols(0, 1, "Extended"),
+            np.asarray(
+                [
+                    complex(-0.7071067811865475, -0.7071067811865475),
+                    complex(0.7071067811865475, 0.7071067811865475),
+                    complex(-0.7071067811865475, -0.7071067811865475),
+                    complex(0.7071067811865475, 0.7071067811865475),
+                    complex(0.7071067811865475, 0.7071067811865475),
+                    complex(0.7071067811865475, 0.7071067811865475),
+                    complex(0.7071067811865475, 0.7071067811865475),
+                    complex(0.7071067811865475, 0.7071067811865475),
+                    complex(-0.7071067811865475, -0.7071067811865475),
+                    complex(0.7071067811865475, 0.7071067811865475),
+                    complex(-0.7071067811865475, -0.7071067811865475),
+                    complex(0.7071067811865475, 0.7071067811865475),
+                ],
+                dtype=np.complex128,
+            ),
+            atol=1e-12,
+            rtol=0.0,
+        )
+        self.assertEqual(
+            _lte_default_dci_bits({"NDLRB": 6, "CP": "Extended", "modulation": "QPSK"}).tolist(),
+            [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+        )
+        self.assertEqual(
+            _lte_default_dci_bits({"NDLRB": 6, "CP": "Normal", "modulation": "QPSK"}, subframe_idx=1).tolist(),
+            [1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0],
+        )
+        self.assertEqual(
+            _lte_default_dci_bits({"NDLRB": 6, "CP": "Normal", "modulation": "QPSK"}, subframe_idx=5).tolist(),
+            [1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0],
+        )
 
     def test_lte_dl_fdd_extcp_oracle_backed_preset_render(self) -> None:
         scene = load_scene(REPO_ROOT / "configs" / "synthetic_atomic" / "lte_dl_fdd_extcp.json")
